@@ -23,20 +23,53 @@ struct TrackingView: View {
 
     private var activeTrackingView: some View {
         NavigationStack {
-            Form {
-                TrackingNumericInfoLabel(
-                    value: Formatters.distance(trackingManager.distance),
-                    unit: "km",
-                    systemImage: "ruler")
-                TrackingNumericInfoLabel(
-                    value: Formatters.duration(trackingManager.averageSpeed),
-                    unit: "/km",
-                    systemImage: "speedometer")
-                TrackingNumericInfoLabel(
-                    value: Formatters.heartRate(trackingManager.averageHeartRate),
-                    unit: "/min",
-                    systemImage: "heart")
+            TabView {
+                currentParametersView
+                detailedParametersView
             }
+            .tabViewStyle(.verticalPage)
+        }
+    }
+
+    private var currentParametersView: some View {
+        VStack(alignment: .leading) {
+            Text(trackingManager.startDate ?? .distantPast, style: .timer)
+            Text(Formatters.duration(trackingManager.currentSpeed) + " /km")
+            Text(Formatters.heartRate(trackingManager.currentHeartRate) + " bpm")
+        }
+        .lineLimit(1)
+        .font(.system(size: 99, weight: .semibold, design: .rounded))
+        .minimumScaleFactor(0.1)
+        .background(.background)
+        .toolbar {
+            // TODO: this is a placeholder
+            ToolbarItem(placement: .topBarTrailing) {
+                Button(action: { }) {
+                    Label("Menu", systemImage: "ellipsis.circle")
+                }
+            }
+        }
+    }
+
+    private var detailedParametersView: some View {
+        Form {
+//            TODO: show total duration
+//            TrackingNumericInfoLabel(
+//                value: Formatters.duration(trackingManager.startDate),
+//                unit: "",
+//                systemImage: "stopwatch")
+            TrackingNumericInfoLabel(
+                value: Formatters.distance(trackingManager.distance),
+                unit: "km",
+                systemImage: "ruler")
+            TrackingNumericInfoLabel(
+                value: Formatters.duration(trackingManager.averageSpeed),
+                unit: "/km",
+                systemImage: "speedometer")
+            TrackingNumericInfoLabel(
+                value: Formatters.heartRate(trackingManager.averageHeartRate),
+                unit: "/min",
+                systemImage: "heart")
         }
     }
 
@@ -72,6 +105,7 @@ fileprivate struct TrackingNumericInfoLabel: View {
 #Preview {
     let trackingManager = TrackingManager()
     trackingManager.isStarted = true
+    trackingManager.startDate = Date(timeIntervalSinceNow: -758.1733) // 12:38
     trackingManager.distance = 1912.156
     trackingManager.averageSpeed = 351 // 5:51
     trackingManager.currentSpeed = 344 // 5:44

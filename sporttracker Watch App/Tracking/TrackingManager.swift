@@ -10,6 +10,7 @@ import Foundation
 class TrackingManager: ObservableObject {
     @Published var isStarted: Bool = false
 
+    @Published var startDate: Date? = nil
     @Published var distance: Double = 0
     @Published var averageSpeed: Double = 0
     @Published var currentSpeed: Double = 0
@@ -23,11 +24,12 @@ class TrackingManager: ObservableObject {
         Task {
             workoutManager.delegate = self
             await workoutManager.requestAuthorization()
-            guard await workoutManager.startWorkout() else {
+            guard let startDate = await workoutManager.startWorkout() else {
                 return
             }
             DispatchQueue.main.async {
                 self.isStarted = true
+                self.startDate = startDate
             }
         }
     }

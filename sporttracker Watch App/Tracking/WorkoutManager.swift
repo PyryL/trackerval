@@ -39,8 +39,8 @@ class WorkoutManager: NSObject {
         }
     }
 
-    func startWorkout() async -> Bool {
-        guard let healthStore, session == nil else { return false }
+    func startWorkout() async -> Date? {
+        guard let healthStore, session == nil else { return nil }
 
         let configuration = HKWorkoutConfiguration()
         configuration.activityType = .running
@@ -50,7 +50,7 @@ class WorkoutManager: NSObject {
             session = try HKWorkoutSession(healthStore: healthStore, configuration: configuration)
         } catch {
             print(error)
-            return false
+            return nil
         }
 
         session!.delegate = self
@@ -66,10 +66,10 @@ class WorkoutManager: NSObject {
             try await builder.beginCollection(at: startDate)
         } catch {
             print("builder start failed", error)
-            return false
+            return nil
         }
 
-        return true
+        return startDate
     }
 }
 
