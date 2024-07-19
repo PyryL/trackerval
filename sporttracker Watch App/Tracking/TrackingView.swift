@@ -9,7 +9,8 @@ import SwiftUI
 
 struct TrackingView: View {
     @StateObject var trackingManager = TrackingManager()
-    
+    @State var showMenu: Bool = false
+
     var body: some View {
         Group {
             if trackingManager.isStarted {
@@ -42,10 +43,23 @@ struct TrackingView: View {
         .minimumScaleFactor(0.1)
         .background(.background)
         .toolbar {
-            // TODO: this is a placeholder
             ToolbarItem(placement: .topBarTrailing) {
-                Button(action: { }) {
+                Button(action: { showMenu = true }) {
                     Label("Menu", systemImage: "ellipsis.circle")
+                }
+            }
+        }
+        .sheet(isPresented: $showMenu) {
+            // TODO: implement all actions
+            List {
+                Button(action: { }) {
+                    Label("Prepare for interval", systemImage: "flag")
+                }
+                Button(action: { }) {
+                    Label("New segment", systemImage: "arrow.triangle.capsulepath")
+                }
+                Button(action: { }) {
+                    Label("End workout", systemImage: "xmark")
                 }
             }
         }
@@ -111,5 +125,5 @@ fileprivate struct TrackingNumericInfoLabel: View {
     trackingManager.currentSpeed = 344 // 5:44
     trackingManager.averageHeartRate = 128.419
     trackingManager.currentHeartRate = 135
-    return TrackingView(trackingManager: trackingManager)
+    return TrackingView(trackingManager: trackingManager, showMenu: true)
 }
