@@ -16,11 +16,13 @@ class TrackingManager: ObservableObject {
 
     let workoutManager = WorkoutManager()
 
-    func prepareToStart() {
+    func startWorkout() {
         Task {
             workoutManager.delegate = self
             await workoutManager.requestAuthorization()
-            guard await workoutManager.startWorkout() else { return }
+            guard await workoutManager.startWorkout() else {
+                return
+            }
             DispatchQueue.main.async {
                 self.isStarted = true
             }

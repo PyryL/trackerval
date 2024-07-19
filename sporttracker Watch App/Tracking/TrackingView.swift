@@ -23,7 +23,7 @@ struct TrackingView: View {
                 startingView
             }
         }
-        .onAppear(perform: trackingManager.prepareToStart)
+        .onAppear(perform: trackingManager.startWorkout)
     }
 
     private var startingView: some View {
@@ -39,5 +39,8 @@ struct TrackingView: View {
 #Preview {
     let trackingManager = TrackingManager()
     trackingManager.isStarted = true
+    trackingManager.distance = 1912.156
+    trackingManager.averageSpeed = 5.911
+    trackingManager.currentSpeed = 5.761
     return TrackingView(trackingManager: trackingManager)
 }

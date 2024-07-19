@@ -35,7 +35,7 @@ class WorkoutManager: NSObject {
         do {
             try await healthStore.requestAuthorization(toShare: types, read: types)
         } catch {
-            // should never here
+            // should never end up in here
             fatalError()
         }
     }
@@ -76,7 +76,7 @@ class WorkoutManager: NSObject {
 
 extension WorkoutManager: HKWorkoutSessionDelegate {
     func workoutSession(_ workoutSession: HKWorkoutSession, didChangeTo toState: HKWorkoutSessionState, from fromState: HKWorkoutSessionState, date: Date) {
-        print("session state \(fromState) -> \(toState)")
+        print("session state \(fromState.description) -> \(toState.description)")
     }
 
     func workoutSession(_ workoutSession: HKWorkoutSession, didFailWithError error: any Error) {
@@ -92,24 +92,37 @@ extension WorkoutManager: HKLiveWorkoutBuilderDelegate {
                 return
             }
 
-            if statistics.quantityType == HKQuantityType(.distanceWalkingRunning) {
-                guard let quantity = statistics.sumQuantity() else {
-                    return
-                }
-                let meters = quantity.doubleValue(for: .meter())
-                delegate?.workoutManagerUpdated(distance: meters)
-            }
-            else if statistics.quantityType == HKQuantityType(.runningSpeed) {
-                guard let averageQuantity = statistics.averageQuantity(),
-                      let currentQuantity = statistics.mostRecentQuantity() else {
-                    return
-                }
-                let averageMinPerKm = 1.0 / averageQuantity.doubleValue(for: .kilometerPerMinute())
-                let currentMinPerKm = 1.0 / currentQuantity.doubleValue(for: .kilometerPerMinute())
-                delegate?.workoutManagerUpdated(averageSpeed: averageMinPerKm,
-                                                currentSpeed: currentMinPerKm)
+            let handlers: [HKQuantityType : (HKStatistics)->()] = [
+                HKQuantityType(.distanceWalkingRunning): handleDistanceStatistics(_:),
+                HKQuantityType(.runningSpeed): handleSpeedStatistics(_:),
+            ]
+
+            if let handler = handlers[statistics.quantityType] {
+                handler(statistics)
             }
         }
+    }
+
+    private func handleDistanceStatistics(_ statistics: HKStatistics) {
+        guard let quantity = statistics.sumQuantity() else {
+            return
+        }
+
+        let meters = quantity.doubleValue(for: .meter())
+
+        delegate?.workoutManagerUpdated(distance: meters)
+    }
+
+    private func handleSpeedStatistics(_ statistics: HKStatistics) {
+        guard let averageQuantity = statistics.averageQuantity(),
+              let currentQuantity = statistics.mostRecentQuantity() else {
+            return
+        }
+
+        let averageMinPerKm = 1.0 / averageQuantity.doubleValue(for: .kilometerPerMinute())
+        let currentMinPerKm = 1.0 / currentQuantity.doubleValue(for: .kilometerPerMinute())
+
+        delegate?.workoutManagerUpdated(averageSpeed: averageMinPerKm, currentSpeed: currentMinPerKm)
     }
 
     func workoutBuilderDidCollectEvent(_ workoutBuilder: HKLiveWorkoutBuilder) {
@@ -117,15 +130,10 @@ extension WorkoutManager: HKLiveWorkoutBuilderDelegate {
     }
 }
 
-extension HKUnit {
-    static func kilometerPerMinute() -> HKUnit {
-        let minuteUnit = HKUnit.minute()
-        let kilometerUnit = HKUnit.meterUnit(with: .kilo)
-        return kilometerUnit.unitDivided(by: minuteUnit)
-    }
-}
-
 protocol WorkoutManagerDelegate {
+    /// - Parameter distance: Total distance measured in meters.
     func workoutManagerUpdated(distance: Double)
+    /// - Parameter averageSpeed: Average speed across the whole workout measured in minutes per kilometer.
+    /// - Parameter currentSpeed: Latest available speed measured in minutes per kilometer.
     func workoutManagerUpdated(averageSpeed: Double, currentSpeed: Double)
 }
