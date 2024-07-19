@@ -68,6 +68,7 @@ struct TrackingView: View {
         .lineLimit(1)
         .font(.system(size: 99, weight: .semibold, design: .rounded))
         .minimumScaleFactor(0.1)
+        .foregroundStyle(trackingManager.intervalStatus == .disabled ? Color("SportNeon") : .primary)
         .background()
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
