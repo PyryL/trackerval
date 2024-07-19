@@ -34,14 +34,27 @@ struct TrackingView: View {
 
     private var currentParametersView: some View {
         VStack(alignment: .leading) {
+            HStack {
+                Spacer()
+            }
             Text(trackingManager.startDate ?? .distantPast, style: .timer)
             Text(Formatters.duration(trackingManager.currentSpeed) + " /km")
             Text(Formatters.heartRate(trackingManager.currentHeartRate) + " bpm")
+            if trackingManager.intervalStatus == .preparedForInterval {
+                HStack {
+                    Spacer()
+                    Image(systemName: "flag")
+                    Text("Interval mode")
+                    Spacer()
+                }
+                .font(.footnote)
+                .foregroundStyle(.blue)
+            }
         }
         .lineLimit(1)
         .font(.system(size: 99, weight: .semibold, design: .rounded))
         .minimumScaleFactor(0.1)
-        .background(.background)
+        .background()
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button(action: { showMenu = true }) {
@@ -50,18 +63,7 @@ struct TrackingView: View {
             }
         }
         .sheet(isPresented: $showMenu) {
-            // TODO: implement all actions
-            List {
-                Button(action: { }) {
-                    Label("Prepare for interval", systemImage: "flag")
-                }
-                Button(action: { }) {
-                    Label("New segment", systemImage: "arrow.triangle.capsulepath")
-                }
-                Button(action: { }) {
-                    Label("End workout", systemImage: "xmark")
-                }
-            }
+            TrackingMenu(trackingManager: trackingManager, closeMenu: { showMenu = false })
         }
     }
 
@@ -125,5 +127,6 @@ fileprivate struct TrackingNumericInfoLabel: View {
     trackingManager.currentSpeed = 344 // 5:44
     trackingManager.averageHeartRate = 128.419
     trackingManager.currentHeartRate = 135
-    return TrackingView(trackingManager: trackingManager, showMenu: true)
+    trackingManager.intervalStatus = .preparedForInterval
+    return TrackingView(trackingManager: trackingManager)
 }

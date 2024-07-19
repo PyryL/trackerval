@@ -17,6 +17,8 @@ class TrackingManager: ObservableObject {
     @Published var averageHeartRate: Double = 0
     @Published var currentHeartRate: Double = 0
 
+    @Published var intervalStatus: IntervalStatus = .disabled
+
 
     let workoutManager = WorkoutManager()
 
@@ -55,4 +57,8 @@ extension TrackingManager: WorkoutManagerDelegate {
             self.currentHeartRate = currentHeartRate
         }
     }
+}
+
+enum IntervalStatus {
+    case disabled, preparedForInterval, ongoing
 }
