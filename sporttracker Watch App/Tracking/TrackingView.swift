@@ -23,12 +23,19 @@ struct TrackingView: View {
     }
 
     private var activeTrackingView: some View {
-        NavigationStack {
-            TabView {
+        Group {
+            if trackingManager.intervalStatus == .disabled {
+                NavigationStack {
+                    TabView {
+                        currentParametersView
+                        detailedParametersView
+                    }
+                    .tabViewStyle(.verticalPage)
+                }
+            } else {
                 currentParametersView
-                detailedParametersView
+                    .modifier(QuickSegmentingModifier(action: trackingManager.addSegment))
             }
-            .tabViewStyle(.verticalPage)
         }
     }
 
@@ -40,15 +47,15 @@ struct TrackingView: View {
             Text(trackingManager.segmentDates.last ?? trackingManager.startDate ?? .distantPast, style: .timer)
             Text(Formatters.duration(trackingManager.currentSpeed) + " /km")
             Text(Formatters.heartRate(trackingManager.currentHeartRate) + " bpm")
-            if trackingManager.intervalStatus == .preparedForInterval {
+            if trackingManager.intervalStatus != .disabled {
                 HStack {
                     Spacer()
                     Image(systemName: "flag")
-                    Text("Interval mode")
+                    Text(trackingManager.intervalStatus == .preparedForInterval ? "Prepared for interval" : "Interval")
                     Spacer()
                 }
                 .font(.footnote)
-                .foregroundStyle(.blue)
+                .foregroundStyle(trackingManager.intervalStatus == .preparedForInterval ? .blue : .orange)
             }
         }
         .lineLimit(1)
@@ -95,6 +102,25 @@ struct TrackingView: View {
                 .progressViewStyle(.circular)
                 .fixedSize(horizontal: true, vertical: true)
             Text("Starting...")
+        }
+    }
+
+    private struct QuickSegmentingModifier: ViewModifier {
+        var action: () -> () = { print("segment") }
+        @State private var dragTriggered: Bool = false
+
+        func body(content: Content) -> some View {
+            content
+                .onTapGesture(perform: action)
+                .gesture(DragGesture(minimumDistance: 0)
+                    .onChanged { _ in
+                        guard !dragTriggered else { return }
+                        dragTriggered = true
+                        action()
+                    }
+                    .onEnded { _ in
+                        dragTriggered = false
+                    })
         }
     }
 }

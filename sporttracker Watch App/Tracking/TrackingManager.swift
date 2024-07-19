@@ -38,13 +38,20 @@ class TrackingManager: ObservableObject {
     }
 
     func addSegment() {
-        guard let segmentStart = segmentDates.last ?? startDate else {
+        guard let segmentStart = segmentDates.last ?? startDate,
+              -segmentStart.timeIntervalSinceNow >= 1.0 else {
             return
         }
         Task {
             if let segmentEnd = await self.workoutManager.addSegment(startDate: segmentStart) {
                 DispatchQueue.main.async {
                     self.segmentDates.append(segmentEnd)
+
+                    if self.intervalStatus == .preparedForInterval {
+                        self.intervalStatus = .ongoing
+                    } else if self.intervalStatus == .ongoing {
+                        self.intervalStatus = .disabled
+                    }
                 }
             }
         }
