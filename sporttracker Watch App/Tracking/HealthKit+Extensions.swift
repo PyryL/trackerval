@@ -13,6 +13,12 @@ extension HKUnit {
         let kilometerUnit = HKUnit.meterUnit(with: .kilo)
         return kilometerUnit.unitDivided(by: minuteUnit)
     }
+
+    static func countPerMinute() -> HKUnit {
+        let countUnit = HKUnit.count()
+        let minuteUnit = HKUnit.minute()
+        return countUnit.unitDivided(by: minuteUnit)
+    }
 }
 
 extension HKWorkoutSessionState {

@@ -13,6 +13,9 @@ class TrackingManager: ObservableObject {
     @Published var distance: Double = 0
     @Published var averageSpeed: Double = 0
     @Published var currentSpeed: Double = 0
+    @Published var averageHeartRate: Double = 0
+    @Published var currentHeartRate: Double = 0
+
 
     let workoutManager = WorkoutManager()
 
@@ -41,6 +44,13 @@ extension TrackingManager: WorkoutManagerDelegate {
         DispatchQueue.main.async {
             self.averageSpeed = averageSpeed
             self.currentSpeed = currentSpeed
+        }
+    }
+
+    func workoutManagerUpdated(averageHeartRate: Double, currentHeartRate: Double) {
+        DispatchQueue.main.async {
+            self.averageHeartRate = averageHeartRate
+            self.currentHeartRate = currentHeartRate
         }
     }
 }

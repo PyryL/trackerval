@@ -18,6 +18,8 @@ struct TrackingView: View {
                     Text("\(trackingManager.distance) m")
                     Text("\(trackingManager.averageSpeed) min/km (average)")
                     Text("\(trackingManager.currentSpeed) min/km (current)")
+                    Text("\(trackingManager.averageHeartRate) /min (average)")
+                    Text("\(trackingManager.currentHeartRate) /min (current)")
                 }
             } else {
                 startingView
@@ -42,5 +44,7 @@ struct TrackingView: View {
     trackingManager.distance = 1912.156
     trackingManager.averageSpeed = 5.911
     trackingManager.currentSpeed = 5.761
+    trackingManager.averageHeartRate = 128
+    trackingManager.currentHeartRate = 135
     return TrackingView(trackingManager: trackingManager)
 }

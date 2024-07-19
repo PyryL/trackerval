@@ -29,7 +29,6 @@ class WorkoutManager: NSObject {
             HKQuantityType.workoutType(),
             HKQuantityType(.distanceWalkingRunning),
             HKQuantityType(.heartRate),
-            HKQuantityType(.runningGroundContactTime),
             HKQuantityType(.runningSpeed),
         ]
         do {
@@ -95,6 +94,7 @@ extension WorkoutManager: HKLiveWorkoutBuilderDelegate {
             let handlers: [HKQuantityType : (HKStatistics)->()] = [
                 HKQuantityType(.distanceWalkingRunning): handleDistanceStatistics(_:),
                 HKQuantityType(.runningSpeed): handleSpeedStatistics(_:),
+                HKQuantityType(.heartRate): handleHeartRateStatistics(_:),
             ]
 
             if let handler = handlers[statistics.quantityType] {
@@ -125,6 +125,19 @@ extension WorkoutManager: HKLiveWorkoutBuilderDelegate {
         delegate?.workoutManagerUpdated(averageSpeed: averageMinPerKm, currentSpeed: currentMinPerKm)
     }
 
+    private func handleHeartRateStatistics(_ statistics: HKStatistics) {
+        guard let averageQuantity = statistics.averageQuantity(),
+              let currentQuantity = statistics.mostRecentQuantity() else {
+            return
+        }
+
+        let averageBeatsPerMin = averageQuantity.doubleValue(for: .countPerMinute())
+        let currentBeatsPerMin = currentQuantity.doubleValue(for: .countPerMinute())
+
+        delegate?.workoutManagerUpdated(averageHeartRate: averageBeatsPerMin,
+                                        currentHeartRate: currentBeatsPerMin)
+    }
+
     func workoutBuilderDidCollectEvent(_ workoutBuilder: HKLiveWorkoutBuilder) {
         print("event collected", workoutBuilder.workoutEvents.last as Any)
     }
@@ -136,4 +149,7 @@ protocol WorkoutManagerDelegate {
     /// - Parameter averageSpeed: Average speed across the whole workout measured in minutes per kilometer.
     /// - Parameter currentSpeed: Latest available speed measured in minutes per kilometer.
     func workoutManagerUpdated(averageSpeed: Double, currentSpeed: Double)
+    /// - Parameter averageHeartRate: Average heart rate across the whole workout measured in beats per minute.
+    /// - Parameter currentHeartRate: Latest available heart rate measured in beats per minute.
+    func workoutManagerUpdated(averageHeartRate: Double, currentHeartRate: Double)
 }
