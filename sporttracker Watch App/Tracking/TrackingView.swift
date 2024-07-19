@@ -37,7 +37,7 @@ struct TrackingView: View {
             HStack {
                 Spacer()
             }
-            Text(trackingManager.startDate ?? .distantPast, style: .timer)
+            Text(trackingManager.segmentDates.last ?? trackingManager.startDate ?? .distantPast, style: .timer)
             Text(Formatters.duration(trackingManager.currentSpeed) + " /km")
             Text(Formatters.heartRate(trackingManager.currentHeartRate) + " bpm")
             if trackingManager.intervalStatus == .preparedForInterval {
@@ -122,6 +122,7 @@ fileprivate struct TrackingNumericInfoLabel: View {
     let trackingManager = TrackingManager()
     trackingManager.isStarted = true
     trackingManager.startDate = Date(timeIntervalSinceNow: -758.1733) // 12:38
+    trackingManager.segmentDates = [Date(timeIntervalSinceNow: -99.315)] // 1:39
     trackingManager.distance = 1912.156
     trackingManager.averageSpeed = 351 // 5:51
     trackingManager.currentSpeed = 344 // 5:44

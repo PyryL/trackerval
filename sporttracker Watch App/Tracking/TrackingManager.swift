@@ -18,6 +18,7 @@ class TrackingManager: ObservableObject {
     @Published var currentHeartRate: Double = 0
 
     @Published var intervalStatus: IntervalStatus = .disabled
+    @Published var segmentDates: [Date] = []
 
 
     let workoutManager = WorkoutManager()
@@ -32,6 +33,19 @@ class TrackingManager: ObservableObject {
             DispatchQueue.main.async {
                 self.isStarted = true
                 self.startDate = startDate
+            }
+        }
+    }
+
+    func addSegment() {
+        guard let segmentStart = segmentDates.last ?? startDate else {
+            return
+        }
+        Task {
+            if let segmentEnd = await self.workoutManager.addSegment(startDate: segmentStart) {
+                DispatchQueue.main.async {
+                    self.segmentDates.append(segmentEnd)
+                }
             }
         }
     }

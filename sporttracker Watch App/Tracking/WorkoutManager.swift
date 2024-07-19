@@ -20,6 +20,7 @@ class WorkoutManager: NSObject {
     private let healthStore: HKHealthStore?
 
     private var session: HKWorkoutSession? = nil
+    private var builder: HKLiveWorkoutBuilder? = nil
 
     public var delegate: WorkoutManagerDelegate? = nil
 
@@ -55,21 +56,41 @@ class WorkoutManager: NSObject {
 
         session!.delegate = self
 
-        let builder = session!.associatedWorkoutBuilder()
-        builder.delegate = self
-        builder.dataSource = HKLiveWorkoutDataSource(healthStore: healthStore,
+        builder = session!.associatedWorkoutBuilder()
+        builder!.delegate = self
+        builder!.dataSource = HKLiveWorkoutDataSource(healthStore: healthStore,
                                                      workoutConfiguration: configuration)
 
         let startDate: Date = .now
         session!.startActivity(with: startDate)
         do {
-            try await builder.beginCollection(at: startDate)
+            try await builder!.beginCollection(at: startDate)
         } catch {
             print("builder start failed", error)
             return nil
         }
 
         return startDate
+    }
+
+    /// - Parameter startDate: The date when the old segment, that is currently being ended, originally started.
+    /// - Returns: The date when the old segment ended and the new one started.
+    func addSegment(startDate: Date) async -> Date? {
+        guard let builder else { return nil }
+
+        let endDate: Date = .now
+        let event = HKWorkoutEvent(type: .segment,
+                                   dateInterval: DateInterval(start: startDate, end: endDate),
+                                   metadata: nil)
+
+        do {
+            try await builder.addWorkoutEvents([event])
+        } catch {
+            print("segment adding failed", error)
+            return nil
+        }
+
+        return endDate
     }
 }
 

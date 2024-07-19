@@ -21,7 +21,10 @@ struct TrackingMenu: View {
                     Label("Prepare for interval", systemImage: "flag")
                 }
 
-                Button(action: { }) {
+                Button {
+                    trackingManager.addSegment()
+                    closeMenu()
+                } label: {
                     Label("New segment", systemImage: "arrow.triangle.capsulepath")
                 }
 
