@@ -18,12 +18,18 @@ class Formatters {
         return formatter.string(from: kilometers as NSNumber) ?? "\(kilometers)"
     }
 
-    static func duration(_ seconds: Double) -> String {
-        // TODO: probably wrong
+    static func duration(_ seconds: Double, withFraction: Bool = true) -> String {
+        // TODO: fix this
         let wholeMinutes = Int(seconds) / 60
-        let remainingSeconds = Int(seconds - 60.0 * Double(wholeMinutes))
+        let remainingSeconds = seconds - 60.0 * Double(wholeMinutes)
 
-        return "\(wholeMinutes):\(remainingSeconds)"
+        let formatter = NumberFormatter()
+        formatter.minimumFractionDigits = withFraction ? 1 : 0
+        formatter.maximumFractionDigits = withFraction ? 1 : 0
+        formatter.decimalSeparator = "."
+        let secondsString = formatter.string(from: remainingSeconds as NSNumber) ?? "\(remainingSeconds)"
+
+        return "\(wholeMinutes):\(secondsString)"
     }
 
     static func heartRate(_ beatsPerMin: Double) -> String {

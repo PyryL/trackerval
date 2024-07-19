@@ -10,6 +10,7 @@ import SwiftUI
 struct TrackingView: View {
     @StateObject var trackingManager = TrackingManager()
     @State var showMenu: Bool = false
+    @State var currentParameterViewDuration: String = ""
 
     var body: some View {
         Group {
@@ -44,8 +45,14 @@ struct TrackingView: View {
             HStack {
                 Spacer()
             }
-            Text(trackingManager.segmentDates.last ?? trackingManager.startDate ?? .distantPast, style: .timer)
-            Text(Formatters.duration(trackingManager.currentSpeed) + " /km")
+            Text(currentParameterViewDuration)
+                .updates(interval: 0.05) {
+                    guard let date = trackingManager.segmentDates.last ?? trackingManager.startDate else {
+                        return
+                    }
+                    currentParameterViewDuration = Formatters.duration(-date.timeIntervalSinceNow)
+                }
+            Text(Formatters.duration(trackingManager.currentSpeed, withFraction: false) + " /km")
             Text(Formatters.heartRate(trackingManager.currentHeartRate) + " bpm")
             if trackingManager.intervalStatus != .disabled {
                 HStack {
@@ -76,17 +83,15 @@ struct TrackingView: View {
 
     private var detailedParametersView: some View {
         Form {
-//            TODO: show total duration
-//            TrackingNumericInfoLabel(
-//                value: Formatters.duration(trackingManager.startDate),
-//                unit: "",
-//                systemImage: "stopwatch")
+            TrackingNumericInfoLabel(
+                date: trackingManager.startDate ?? .distantPast,
+                systemImage: "stopwatch")
             TrackingNumericInfoLabel(
                 value: Formatters.distance(trackingManager.distance),
                 unit: "km",
                 systemImage: "ruler")
             TrackingNumericInfoLabel(
-                value: Formatters.duration(trackingManager.averageSpeed),
+                value: Formatters.duration(trackingManager.averageSpeed, withFraction: false),
                 unit: "/km",
                 systemImage: "speedometer")
             TrackingNumericInfoLabel(
@@ -126,7 +131,22 @@ struct TrackingView: View {
 }
 
 fileprivate struct TrackingNumericInfoLabel: View {
-    var value: String
+    init(value: String, unit: String, systemImage: String) {
+        self.value = value
+        self.date = nil
+        self.unit = unit
+        self.systemImage = systemImage
+    }
+
+    init(date: Date, systemImage: String) {
+        self.value = ""
+        self.date = date
+        self.unit = ""
+        self.systemImage = systemImage
+    }
+
+    @State var value: String
+    var date: Date?
     var unit: String
     var systemImage: String
 
@@ -141,6 +161,10 @@ fileprivate struct TrackingNumericInfoLabel: View {
             Spacer(minLength: 0)
             Text(unit)
         }
+        .updates(interval: 0.05, enabled: date != nil) {
+            guard let date else { return }
+            value = Formatters.duration(-date.timeIntervalSinceNow)
+        }
     }
 }
 
@@ -154,6 +178,6 @@ fileprivate struct TrackingNumericInfoLabel: View {
     trackingManager.currentSpeed = 344 // 5:44
     trackingManager.averageHeartRate = 128.419
     trackingManager.currentHeartRate = 135
-    trackingManager.intervalStatus = .preparedForInterval
+//    trackingManager.intervalStatus = .preparedForInterval
     return TrackingView(trackingManager: trackingManager)
 }
