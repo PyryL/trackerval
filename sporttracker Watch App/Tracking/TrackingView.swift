@@ -13,19 +13,31 @@ struct TrackingView: View {
     var body: some View {
         Group {
             if trackingManager.isStarted {
-                VStack {
-                    Text("Tracking")
-                    Text("\(trackingManager.distance) m")
-                    Text("\(trackingManager.averageSpeed) min/km (average)")
-                    Text("\(trackingManager.currentSpeed) min/km (current)")
-                    Text("\(trackingManager.averageHeartRate) /min (average)")
-                    Text("\(trackingManager.currentHeartRate) /min (current)")
-                }
+                activeTrackingView
             } else {
                 startingView
             }
         }
         .onAppear(perform: trackingManager.startWorkout)
+    }
+
+    private var activeTrackingView: some View {
+        NavigationStack {
+            Form {
+                TrackingNumericInfoLabel(
+                    value: Formatters.distance(trackingManager.distance),
+                    unit: "km",
+                    systemImage: "ruler")
+                TrackingNumericInfoLabel(
+                    value: Formatters.duration(trackingManager.averageSpeed),
+                    unit: "/km",
+                    systemImage: "speedometer")
+                TrackingNumericInfoLabel(
+                    value: Formatters.heartRate(trackingManager.averageHeartRate),
+                    unit: "/min",
+                    systemImage: "heart")
+            }
+        }
     }
 
     private var startingView: some View {
@@ -38,13 +50,32 @@ struct TrackingView: View {
     }
 }
 
+fileprivate struct TrackingNumericInfoLabel: View {
+    var value: String
+    var unit: String
+    var systemImage: String
+
+    var body: some View {
+        HStack {
+            Image(systemName: systemImage)
+                .padding(.trailing)
+            Text(value)
+                .fontWeight(.semibold)
+                .fontDesign(.rounded)
+                .monospaced()
+            Spacer(minLength: 0)
+            Text(unit)
+        }
+    }
+}
+
 #Preview {
     let trackingManager = TrackingManager()
     trackingManager.isStarted = true
     trackingManager.distance = 1912.156
-    trackingManager.averageSpeed = 5.911
-    trackingManager.currentSpeed = 5.761
-    trackingManager.averageHeartRate = 128
+    trackingManager.averageSpeed = 351 // 5:51
+    trackingManager.currentSpeed = 344 // 5:44
+    trackingManager.averageHeartRate = 128.419
     trackingManager.currentHeartRate = 135
     return TrackingView(trackingManager: trackingManager)
 }

@@ -8,10 +8,10 @@
 import HealthKit
 
 extension HKUnit {
-    static func kilometerPerMinute() -> HKUnit {
-        let minuteUnit = HKUnit.minute()
+    static func kilometerPerSecond() -> HKUnit {
+        let secondUnit = HKUnit.second()
         let kilometerUnit = HKUnit.meterUnit(with: .kilo)
-        return kilometerUnit.unitDivided(by: minuteUnit)
+        return kilometerUnit.unitDivided(by: secondUnit)
     }
 
     static func countPerMinute() -> HKUnit {

@@ -119,10 +119,10 @@ extension WorkoutManager: HKLiveWorkoutBuilderDelegate {
             return
         }
 
-        let averageMinPerKm = 1.0 / averageQuantity.doubleValue(for: .kilometerPerMinute())
-        let currentMinPerKm = 1.0 / currentQuantity.doubleValue(for: .kilometerPerMinute())
+        let averageSecPerKm = 1.0 / averageQuantity.doubleValue(for: .kilometerPerSecond())
+        let currentSecPerKm = 1.0 / currentQuantity.doubleValue(for: .kilometerPerSecond())
 
-        delegate?.workoutManagerUpdated(averageSpeed: averageMinPerKm, currentSpeed: currentMinPerKm)
+        delegate?.workoutManagerUpdated(averageSpeed: averageSecPerKm, currentSpeed: currentSecPerKm)
     }
 
     private func handleHeartRateStatistics(_ statistics: HKStatistics) {
@@ -146,8 +146,8 @@ extension WorkoutManager: HKLiveWorkoutBuilderDelegate {
 protocol WorkoutManagerDelegate {
     /// - Parameter distance: Total distance measured in meters.
     func workoutManagerUpdated(distance: Double)
-    /// - Parameter averageSpeed: Average speed across the whole workout measured in minutes per kilometer.
-    /// - Parameter currentSpeed: Latest available speed measured in minutes per kilometer.
+    /// - Parameter averageSpeed: Average speed across the whole workout measured in seconds per kilometer.
+    /// - Parameter currentSpeed: Latest available speed measured in seconds per kilometer.
     func workoutManagerUpdated(averageSpeed: Double, currentSpeed: Double)
     /// - Parameter averageHeartRate: Average heart rate across the whole workout measured in beats per minute.
     /// - Parameter currentHeartRate: Latest available heart rate measured in beats per minute.

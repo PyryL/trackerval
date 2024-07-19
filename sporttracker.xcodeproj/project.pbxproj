@@ -39,19 +39,9 @@
 		4479931E2C4A6045001033A7 /* sporttracker Watch App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "sporttracker Watch App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
-/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		447993442C4A65C8001033A7 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				"sporttracker-Watch-App-Info.plist",
-			);
-			target = 4479931D2C4A6045001033A7 /* sporttracker Watch App */;
-		};
-/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
-
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		447993102C4A6045001033A7 /* sporttracker */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = sporttracker; sourceTree = "<group>"; };
-		447993222C4A6046001033A7 /* sporttracker Watch App */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (447993442C4A65C8001033A7 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = "sporttracker Watch App"; sourceTree = "<group>"; };
+		447993222C4A6046001033A7 /* sporttracker Watch App */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = "sporttracker Watch App"; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
