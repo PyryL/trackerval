@@ -112,7 +112,7 @@ struct TrackingView: View {
     }
 
     private struct QuickSegmentingModifier: ViewModifier {
-        var action: () -> () = { print("segment") }
+        var action: () -> ()
         @State private var dragTriggered: Bool = false
 
         func body(content: Content) -> some View {
