@@ -129,7 +129,7 @@ struct DetailedParametersView: View {
             }
 
             TrackingNumericInfoLabel(
-                value: averageSpeed != nil ? Formatters.duration(averageSpeed!, withFraction: false) : "...",
+                value: averageSpeed != nil ? Formatters.speed(averageSpeed!) : "...",
                 unit: "/ km",
                 systemImage: "speedometer")
             .onChange(of: segment) { updateSpeed() }

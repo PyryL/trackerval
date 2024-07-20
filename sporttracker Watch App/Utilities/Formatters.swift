@@ -24,18 +24,34 @@ class Formatters {
         return formatter.string(from: kilometers as NSNumber) ?? "\(kilometers)"
     }
 
-    static func duration(_ seconds: Double, withFraction: Bool = true) -> String {
-        // TODO: fix this
-        let wholeMinutes = Int(seconds) / 60
-        let remainingSeconds = seconds - 60.0 * Double(wholeMinutes)
+    /// - Returns: The given seconds formatted into hours, minutes, seconds and tenths of seconds.
+    ///     Hours and minutes are dropped if zero.
+    static func duration(_ seconds: Double) -> String {
 
-        let formatter = NumberFormatter()
-        formatter.minimumFractionDigits = withFraction ? 1 : 0
-        formatter.maximumFractionDigits = withFraction ? 1 : 0
-        formatter.decimalSeparator = "."
-        let secondsString = formatter.string(from: remainingSeconds as NSNumber) ?? "\(remainingSeconds)"
+        let secondTenths: Int = Int(ceil(10.0 * seconds))
 
-        return "\(wholeMinutes):\(secondsString)"
+        let wholeHours: Int = secondTenths / 36000
+        let wholeMinutes: Int = (secondTenths - 36000 * wholeHours) / 600
+        let wholeSeconds: Int = (secondTenths - 36000 * wholeHours - 600 * wholeMinutes) / 10
+        let fractionSecond: Int = secondTenths - 36000 * wholeHours - 600 * wholeMinutes - 10 * wholeSeconds
+
+        let wholeMinuteString = String(format: wholeHours == 0 ? "%01d" : "%02d", wholeMinutes)
+        let wholeSecondsString = String(format: "%02d", wholeSeconds)
+
+        if wholeHours > 0 {
+            return "\(wholeHours):\(wholeMinuteString):\(wholeSecondsString).\(fractionSecond)"
+        }
+
+        if wholeMinutes > 0 {
+            return "\(wholeMinuteString):\(wholeSecondsString).\(fractionSecond)"
+        }
+
+        return "\(wholeSecondsString).\(fractionSecond)"
+    }
+
+    static func speed(_ secondsPerKm: Double) -> String {
+        // FIXME: implement this
+        return duration(secondsPerKm).components(separatedBy: ".")[0]
     }
 
     static func heartRate(_ beatsPerMin: Double) -> String {

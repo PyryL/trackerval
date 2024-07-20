@@ -27,4 +27,36 @@ struct FormattersTests {
         #expect(Formatters.distance(-12.1109) == "")
     }
 
+    @Test func testDurationFormatting() {
+        #expect(Formatters.duration(0.0) == "00.0")
+
+        #expect(Formatters.duration(0.5) == "00.5")
+        #expect(Formatters.duration(0.5010) == "00.6")
+        #expect(Formatters.duration(0.5989) == "00.6")
+
+        #expect(Formatters.duration(10.7192) == "10.8")
+        #expect(Formatters.duration(58.1021) == "58.2")
+
+        #expect(Formatters.duration(59.81) == "59.9")
+        #expect(Formatters.duration(59.90) == "59.9")
+        #expect(Formatters.duration(59.9001) == "1:00.0")
+        #expect(Formatters.duration(60.0) == "1:00.0")
+        #expect(Formatters.duration(60.0001) == "1:00.1")
+        #expect(Formatters.duration(61.50238) == "1:01.6")
+
+        #expect(Formatters.duration(74.9018) == "1:15.0")
+        #expect(Formatters.duration(120.0711) == "2:00.1")
+        #expect(Formatters.duration(682.3082) == "11:22.4")
+
+        #expect(Formatters.duration(3599.9001) == "1:00:00.0")
+        #expect(Formatters.duration(3600.0) == "1:00:00.0")
+        #expect(Formatters.duration(3600.81023) == "1:00:00.9")
+        #expect(Formatters.duration(3602.1291) == "1:00:02.2")
+        #expect(Formatters.duration(3647.5985) == "1:00:47.6")
+        #expect(Formatters.duration(3687.2984) == "1:01:27.3")
+
+        #expect(Formatters.duration(9556.8429) == "2:39:16.9")
+        #expect(Formatters.duration(52968.001812) == "14:42:48.1")
+    }
+
 }

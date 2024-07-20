@@ -24,7 +24,7 @@ struct CurrentParametersView: View {
                     }
                     currentParameterViewDuration = Formatters.duration(-date.timeIntervalSinceNow)
                 }
-            Text(Formatters.duration(trackingManager.currentSpeed, withFraction: false) + " /km")
+            Text(Formatters.speed(trackingManager.currentSpeed) + " /km")
             Text(Formatters.heartRate(trackingManager.currentHeartRate) + " bpm")
             if trackingManager.intervalStatus != .disabled {
                 HStack {
