@@ -8,9 +8,13 @@
 import SwiftUI
 
 struct TrackingView: View {
+    init(trackingManager: TrackingManager = TrackingManager()) {
+        self._trackingManager = .init(wrappedValue: trackingManager)
+        currentParametersView = CurrentParametersView(trackingManager: trackingManager)
+    }
+
     @StateObject var trackingManager = TrackingManager()
-    @State var showMenu: Bool = false
-    @State var currentParameterViewDuration: String = ""
+    let currentParametersView: CurrentParametersView
 
     var body: some View {
         Group {
@@ -29,7 +33,7 @@ struct TrackingView: View {
                 NavigationStack {
                     TabView {
                         currentParametersView
-                        detailedParametersView
+                        DetailedParametersView(trackingManager: trackingManager)
                     }
                     .tabViewStyle(.verticalPage)
                 }
@@ -37,68 +41,6 @@ struct TrackingView: View {
                 currentParametersView
                     .modifier(QuickSegmentingModifier(action: trackingManager.addSegment))
             }
-        }
-    }
-
-    private var currentParametersView: some View {
-        VStack(alignment: .leading) {
-            HStack {
-                Spacer()
-            }
-            Text(currentParameterViewDuration)
-                .updates(interval: 0.05) {
-                    guard let date = trackingManager.segmentDates.last ?? trackingManager.startDate else {
-                        return
-                    }
-                    currentParameterViewDuration = Formatters.duration(-date.timeIntervalSinceNow)
-                }
-            Text(Formatters.duration(trackingManager.currentSpeed, withFraction: false) + " /km")
-            Text(Formatters.heartRate(trackingManager.currentHeartRate) + " bpm")
-            if trackingManager.intervalStatus != .disabled {
-                HStack {
-                    Spacer()
-                    Image(systemName: "flag")
-                    Text(trackingManager.intervalStatus == .preparedForInterval ? "Prepared for interval" : "Interval")
-                    Spacer()
-                }
-                .font(.footnote)
-                .foregroundStyle(trackingManager.intervalStatus == .preparedForInterval ? .blue : .orange)
-            }
-        }
-        .lineLimit(1)
-        .font(.system(size: 99, weight: .semibold, design: .rounded))
-        .minimumScaleFactor(0.1)
-        .foregroundStyle(trackingManager.intervalStatus == .disabled ? Color("SportNeon") : .primary)
-        .background()
-        .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                Button(action: { showMenu = true }) {
-                    Label("Menu", systemImage: "ellipsis.circle")
-                }
-            }
-        }
-        .sheet(isPresented: $showMenu) {
-            TrackingMenu(trackingManager: trackingManager, closeMenu: { showMenu = false })
-        }
-    }
-
-    private var detailedParametersView: some View {
-        Form {
-            TrackingNumericInfoLabel(
-                date: trackingManager.startDate ?? .distantPast,
-                systemImage: "stopwatch")
-            TrackingNumericInfoLabel(
-                value: Formatters.distance(trackingManager.distance),
-                unit: "km",
-                systemImage: "ruler")
-            TrackingNumericInfoLabel(
-                value: Formatters.duration(trackingManager.averageSpeed, withFraction: false),
-                unit: "/km",
-                systemImage: "speedometer")
-            TrackingNumericInfoLabel(
-                value: Formatters.heartRate(trackingManager.averageHeartRate),
-                unit: "/min",
-                systemImage: "heart")
         }
     }
 
@@ -127,44 +69,6 @@ struct TrackingView: View {
                     .onEnded { _ in
                         dragTriggered = false
                     })
-        }
-    }
-}
-
-fileprivate struct TrackingNumericInfoLabel: View {
-    init(value: String, unit: String, systemImage: String) {
-        self.value = value
-        self.date = nil
-        self.unit = unit
-        self.systemImage = systemImage
-    }
-
-    init(date: Date, systemImage: String) {
-        self.value = ""
-        self.date = date
-        self.unit = ""
-        self.systemImage = systemImage
-    }
-
-    @State var value: String
-    var date: Date?
-    var unit: String
-    var systemImage: String
-
-    var body: some View {
-        HStack {
-            Image(systemName: systemImage)
-                .padding(.trailing)
-            Text(value)
-                .fontWeight(.semibold)
-                .fontDesign(.rounded)
-                .monospaced()
-            Spacer(minLength: 0)
-            Text(unit)
-        }
-        .updates(interval: 0.05, enabled: date != nil) {
-            guard let date else { return }
-            value = Formatters.duration(-date.timeIntervalSinceNow)
         }
     }
 }
