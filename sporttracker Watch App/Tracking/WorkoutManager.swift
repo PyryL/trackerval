@@ -183,8 +183,11 @@ extension WorkoutManager: HKLiveWorkoutBuilderDelegate {
             return
         }
 
-        let averageSecPerKm = 1.0 / averageQuantity.doubleValue(for: .kilometerPerSecond())
-        let currentSecPerKm = 1.0 / currentQuantity.doubleValue(for: .kilometerPerSecond())
+        let averageKmPerSec = averageQuantity.doubleValue(for: .kilometerPerSecond())
+        let currentKmPerSec = currentQuantity.doubleValue(for: .kilometerPerSecond())
+
+        let averageSecPerKm = averageKmPerSec == 0 ? 0.0 : 1.0 / averageKmPerSec
+        let currentSecPerKm = currentKmPerSec == 0 ? 0.0 : 1.0 / currentKmPerSec
 
         delegate?.workoutManagerUpdated(averageSpeed: averageSecPerKm, currentSpeed: currentSecPerKm)
     }
