@@ -102,7 +102,7 @@ class WorkoutManager: NSObject {
         let predicate = HKQuery.predicateForSamples(withStart: startDate, end: endDate)
 
         return await withUnsafeContinuation { continuation in
-            let query = HKStatisticsQuery(quantityType: sampleType, quantitySamplePredicate: predicate) { _, statistics, error in
+            let query = HKStatisticsQuery(quantityType: sampleType, quantitySamplePredicate: predicate, options: parameter.queryOptions) { _, statistics, error in
 
                 guard let statistics else {
                     print(error as Any)
@@ -119,14 +119,27 @@ class WorkoutManager: NSObject {
     }
 
     enum LoadableParameter {
-        case distance, averageHeartRate
+        case distance, averageSpeed, averageHeartRate
 
         var quantityTypeIdentifier: HKQuantityTypeIdentifier {
             switch self {
             case .distance:
                 HKQuantityTypeIdentifier.distanceWalkingRunning
+            case .averageSpeed:
+                HKQuantityTypeIdentifier.runningSpeed
             case .averageHeartRate:
                 HKQuantityTypeIdentifier.heartRate
+            }
+        }
+
+        var queryOptions: HKStatisticsOptions {
+            switch self {
+            case .distance:
+                []
+            case .averageSpeed:
+                HKStatisticsOptions.discreteAverage
+            case .averageHeartRate:
+                HKStatisticsOptions.discreteAverage
             }
         }
 
@@ -134,6 +147,8 @@ class WorkoutManager: NSObject {
             switch self {
             case .distance:
                 statistics.sumQuantity()?.doubleValue(for: .meter())
+            case .averageSpeed:
+                statistics.averageQuantity()?.doubleValue(for: .kilometerPerSecond()).inverse()
             case .averageHeartRate:
                 statistics.averageQuantity()?.doubleValue(for: .countPerMinute())
             }
@@ -187,11 +202,8 @@ extension WorkoutManager: HKLiveWorkoutBuilderDelegate {
             return
         }
 
-        let averageKmPerSec = averageQuantity.doubleValue(for: .kilometerPerSecond())
-        let currentKmPerSec = currentQuantity.doubleValue(for: .kilometerPerSecond())
-
-        let averageSecPerKm = averageKmPerSec == 0 ? 0.0 : 1.0 / averageKmPerSec
-        let currentSecPerKm = currentKmPerSec == 0 ? 0.0 : 1.0 / currentKmPerSec
+        let averageSecPerKm = averageQuantity.doubleValue(for: .kilometerPerSecond()).inverse()
+        let currentSecPerKm = currentQuantity.doubleValue(for: .kilometerPerSecond()).inverse()
 
         delegate?.workoutManagerUpdated(averageSpeed: averageSecPerKm, currentSpeed: currentSecPerKm)
     }
@@ -223,4 +235,14 @@ protocol WorkoutManagerDelegate {
     /// - Parameter averageHeartRate: Average heart rate across the whole workout measured in beats per minute.
     /// - Parameter currentHeartRate: Latest available heart rate measured in beats per minute.
     func workoutManagerUpdated(averageHeartRate: Double, currentHeartRate: Double)
+}
+
+extension Double {
+    /// - Returns: One divided by the receiver, or zero if the receiver is zero.
+    func inverse() -> Double {
+        guard self != 0.0 else {
+            return 0.0
+        }
+        return 1.0 / self
+    }
 }

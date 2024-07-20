@@ -12,6 +12,7 @@ struct DetailedParametersView: View {
     @State var segment: Int? = nil
 
     @State private var distance: Double? = 0
+    @State private var averageSpeed: Double? = 0
     @State private var averageHeartRate: Double? = nil
 
     private var isCurrentSegment: Bool {
@@ -59,6 +60,23 @@ struct DetailedParametersView: View {
 
             DispatchQueue.main.async {
                 self.distance = distance
+            }
+        }
+    }
+
+    private func updateSpeed() {
+        guard segment != nil else {
+            averageSpeed = trackingManager.averageSpeed
+            return
+        }
+
+        averageSpeed = nil
+
+        Task {
+            let averageSpeed = await trackingManager.workoutManager.loadParameter(.averageSpeed, startDate: segmentStartDate, endDate: segmentEndDate ?? .now)
+
+            DispatchQueue.main.async {
+                self.averageSpeed = averageSpeed
             }
         }
     }
@@ -111,9 +129,17 @@ struct DetailedParametersView: View {
             }
 
             TrackingNumericInfoLabel(
-                value: Formatters.duration(trackingManager.averageSpeed, withFraction: false),
-                unit: "/km",
+                value: averageSpeed != nil ? Formatters.duration(averageSpeed!, withFraction: false) : "...",
+                unit: "/ km",
                 systemImage: "speedometer")
+            .onChange(of: segment) { updateSpeed() }
+            .onChange(of: trackingManager.averageSpeed) { _, newValue in
+                if segment == nil {
+                    averageSpeed = newValue
+                } else if isCurrentSegment {
+                    updateSpeed()
+                }
+            }
 
             TrackingNumericInfoLabel(
                 value: averageHeartRate != nil ? Formatters.heartRate(averageHeartRate!) : "...",
