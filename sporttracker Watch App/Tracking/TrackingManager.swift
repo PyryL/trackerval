@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import WatchKit
 
 class TrackingManager: ObservableObject {
     init(endTracking: @escaping () -> ()) {
@@ -40,6 +41,7 @@ class TrackingManager: ObservableObject {
                 self.isStarted = true
                 self.startDate = startDate
             }
+            WKInterfaceDevice.current().play(.success)
         }
     }
 
@@ -59,6 +61,7 @@ class TrackingManager: ObservableObject {
                         self.intervalStatus = .disabled
                     }
                 }
+                WKInterfaceDevice.current().play(.retry) // or .notification
             }
         }
     }
@@ -68,6 +71,7 @@ class TrackingManager: ObservableObject {
             return
         }
         endTracking()
+        WKInterfaceDevice.current().play(.failure)
     }
 }
 
