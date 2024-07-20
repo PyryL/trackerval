@@ -29,10 +29,10 @@ struct FormattersTests {
     }
 
     @Test func testDurationFormatting() {
-        #expect(Formatters.duration(0.0) == "00.0")
-        #expect(Formatters.duration(0.5) == "00.5")
-        #expect(Formatters.duration(0.5010) == "00.6")
-        #expect(Formatters.duration(0.5989) == "00.6")
+        #expect(Formatters.duration(0.0) == "0.0")
+        #expect(Formatters.duration(0.5) == "0.5")
+        #expect(Formatters.duration(0.5010) == "0.6")
+        #expect(Formatters.duration(0.5989) == "0.6")
 
         #expect(Formatters.duration(10.7192) == "10.8")
         #expect(Formatters.duration(58.1021) == "58.2")

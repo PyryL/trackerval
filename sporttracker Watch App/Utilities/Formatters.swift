@@ -39,7 +39,7 @@ class Formatters {
         let fractionSecond: Int = secondTenths - 36000 * wholeHours - 600 * wholeMinutes - 10 * wholeSeconds
 
         let wholeMinuteString = String(format: wholeHours == 0 ? "%01d" : "%02d", wholeMinutes)
-        let wholeSecondsString = String(format: "%02d", wholeSeconds)
+        let wholeSecondsString = String(format: wholeMinutes == 0 && wholeHours == 0 ? "%01d" : "%02d", wholeSeconds)
 
         if wholeHours > 0 {
             return "\(wholeHours):\(wholeMinuteString):\(wholeSecondsString).\(fractionSecond)"
