@@ -75,4 +75,12 @@ struct FormattersTests {
         #expect(Formatters.speed(737.391) == "12:18")
     }
 
+    @Test func testHeartRateFormatting() {
+        #expect(Formatters.heartRate(0.0) == "0")
+        #expect(Formatters.heartRate(94.0) == "94")
+        #expect(Formatters.heartRate(125.4) == "125")
+        #expect(Formatters.heartRate(125.6) == "126")
+        #expect(Formatters.heartRate(216.1948) == "216")
+    }
+
 }
