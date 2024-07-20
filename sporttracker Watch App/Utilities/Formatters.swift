@@ -50,8 +50,15 @@ class Formatters {
     }
 
     static func speed(_ secondsPerKm: Double) -> String {
-        // FIXME: implement this
-        return duration(secondsPerKm).components(separatedBy: ".")[0]
+
+        let seconds = Int(ceil(secondsPerKm))
+
+        let wholeMinutes: Int = seconds / 60
+        let remainingSeconds: Int = seconds - 60 * wholeMinutes
+
+        let remainingSecondsString = String(format: "%02d", remainingSeconds)
+
+        return "\(wholeMinutes):\(remainingSecondsString)"
     }
 
     static func heartRate(_ beatsPerMin: Double) -> String {

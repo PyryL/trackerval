@@ -59,4 +59,20 @@ struct FormattersTests {
         #expect(Formatters.duration(52968.001812) == "14:42:48.1")
     }
 
+    @Test func testSpeedFormatting() {
+        #expect(Formatters.speed(0.0) == "0:00")
+        #expect(Formatters.speed(0.0001) == "0:01")
+        #expect(Formatters.speed(8.3918) == "0:09")
+        #expect(Formatters.speed(12.4912) == "0:13")
+
+        #expect(Formatters.speed(59.0184) == "1:00")
+        #expect(Formatters.speed(60.0) == "1:00")
+        #expect(Formatters.speed(74.1937) == "1:15")
+
+        #expect(Formatters.speed(138.9739) == "2:19")
+        #expect(Formatters.speed(352.40189) == "5:53")
+        #expect(Formatters.speed(606.9192) == "10:07")
+        #expect(Formatters.speed(737.391) == "12:18")
+    }
+
 }
