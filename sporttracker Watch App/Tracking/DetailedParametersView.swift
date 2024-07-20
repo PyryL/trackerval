@@ -9,12 +9,38 @@ import SwiftUI
 
 struct DetailedParametersView: View {
     @ObservedObject var trackingManager: TrackingManager
-    
+    @State var segment: Int? = nil
+
+    private var segmentDuration: Double {
+        guard let segment,
+              segment < trackingManager.segmentDates.count,
+              let workoutStartDate = trackingManager.startDate else {
+            return 0
+        }
+
+        let endDate = trackingManager.segmentDates[segment]
+        let startDate = segment == 0 ? workoutStartDate : trackingManager.segmentDates[segment-1]
+
+        return endDate.timeIntervalSince(startDate)
+    }
+
     var body: some View {
         Form {
-            TrackingNumericInfoLabel(
-                date: trackingManager.startDate ?? .distantPast,
-                systemImage: "stopwatch")
+            if segment == nil {
+                TrackingNumericInfoLabel(
+                    date: trackingManager.startDate ?? .distantPast,
+                    systemImage: "stopwatch")
+            } else if segment == trackingManager.segmentDates.count {
+                TrackingNumericInfoLabel(
+                    date: trackingManager.segmentDates.last ?? .distantPast,
+                    systemImage: "stopwatch")
+            } else {
+                TrackingNumericInfoLabel(
+                    value: Formatters.duration(segmentDuration),
+                    unit: "",
+                    systemImage: "stopwatch")
+            }
+
             TrackingNumericInfoLabel(
                 value: Formatters.distance(trackingManager.distance),
                 unit: "km",
@@ -27,6 +53,22 @@ struct DetailedParametersView: View {
                 value: Formatters.heartRate(trackingManager.averageHeartRate),
                 unit: "/min",
                 systemImage: "heart")
+        }
+        .toolbar {
+            ToolbarItem(placement: .topBarLeading) {
+                Picker(selection: $segment) {
+                    Text("Total").tag(nil as Int?)
+                    ForEach(0..<trackingManager.segmentDates.count, id: \.self) { index in
+                        Text("Segment \(index+1)").tag(index)
+                    }
+                    if !trackingManager.segmentDates.isEmpty {
+                        Text("Current").tag(trackingManager.segmentDates.count)
+                    }
+                } label: {
+                    EmptyView()
+                }
+                .pickerStyle(.navigationLink)
+            }
         }
     }
 }
@@ -46,16 +88,17 @@ fileprivate struct TrackingNumericInfoLabel: View {
         self.systemImage = systemImage
     }
 
-    @State var value: String
+    var value: String
     var date: Date?
     var unit: String
     var systemImage: String
+    @State private var updatingValue: String? = nil
 
     var body: some View {
         HStack {
             Image(systemName: systemImage)
                 .padding(.trailing)
-            Text(value)
+            Text(updatingValue ?? value)
                 .fontWeight(.semibold)
                 .fontDesign(.rounded)
                 .monospaced()
@@ -64,7 +107,7 @@ fileprivate struct TrackingNumericInfoLabel: View {
         }
         .updates(interval: 0.05, enabled: date != nil) {
             guard let date else { return }
-            value = Formatters.duration(-date.timeIntervalSinceNow)
+            updatingValue = Formatters.duration(-date.timeIntervalSinceNow)
         }
     }
 }
@@ -72,12 +115,27 @@ fileprivate struct TrackingNumericInfoLabel: View {
 #Preview {
     let trackingManager = TrackingManager()
     trackingManager.isStarted = true
-    trackingManager.startDate = Date(timeIntervalSinceNow: -758.1733) // 12:38
-    trackingManager.segmentDates = [Date(timeIntervalSinceNow: -99.315)] // 1:39
+    trackingManager.startDate = Date(timeIntervalSinceNow: -758.1733)
+    trackingManager.segmentDates = [
+        Date(timeIntervalSinceNow: -445.8733),
+        Date(timeIntervalSinceNow: -206.9561),
+    ]
     trackingManager.distance = 1912.156
     trackingManager.averageSpeed = 351 // 5:51
     trackingManager.currentSpeed = 344 // 5:44
     trackingManager.averageHeartRate = 128.419
     trackingManager.currentHeartRate = 135
-    return DetailedParametersView(trackingManager: trackingManager)
+    return NavigationStack {
+        DetailedParametersView(trackingManager: trackingManager)
+    }
 }
+
+/*
+ .now   0
+                        3:27.0 and increasing
+ segDate[1] −206.9561
+                        3:58.9
+ segDate[0] -445.8733
+                        5:12.3
+ startDate  -758.1733    (12:38.2 ago)
+ */
