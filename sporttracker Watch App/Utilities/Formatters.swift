@@ -27,6 +27,9 @@ class Formatters {
     /// - Returns: The given seconds formatted into hours, minutes, seconds and tenths of seconds.
     ///     Hours and minutes are dropped if zero.
     static func duration(_ seconds: Double) -> String {
+        guard seconds >= 0.0 else {
+            return ""
+        }
 
         let secondTenths: Int = Int(ceil(10.0 * seconds))
 
@@ -50,6 +53,9 @@ class Formatters {
     }
 
     static func speed(_ secondsPerKm: Double) -> String {
+        guard secondsPerKm >= 0.0 else {
+            return ""
+        }
 
         let seconds = Int(ceil(secondsPerKm))
 
@@ -62,6 +68,10 @@ class Formatters {
     }
 
     static func heartRate(_ beatsPerMin: Double) -> String {
+        guard beatsPerMin >= 0.0 else {
+            return ""
+        }
+
         let formatter = NumberFormatter()
         formatter.maximumFractionDigits = 0
         return formatter.string(from: beatsPerMin as NSNumber) ?? "\(beatsPerMin)"

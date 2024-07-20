@@ -25,11 +25,11 @@ struct FormattersTests {
         #expect(Formatters.distance(10518.5092) == "10.51")
         #expect(Formatters.distance(109376.1921) == "109.37")
         #expect(Formatters.distance(-12.1109) == "")
+        #expect(Formatters.distance(.nan) == "")
     }
 
     @Test func testDurationFormatting() {
         #expect(Formatters.duration(0.0) == "00.0")
-
         #expect(Formatters.duration(0.5) == "00.5")
         #expect(Formatters.duration(0.5010) == "00.6")
         #expect(Formatters.duration(0.5989) == "00.6")
@@ -57,6 +57,8 @@ struct FormattersTests {
 
         #expect(Formatters.duration(9556.8429) == "2:39:16.9")
         #expect(Formatters.duration(52968.001812) == "14:42:48.1")
+        #expect(Formatters.duration(-1.3101) == "")
+        #expect(Formatters.duration(.nan) == "")
     }
 
     @Test func testSpeedFormatting() {
@@ -73,6 +75,9 @@ struct FormattersTests {
         #expect(Formatters.speed(352.40189) == "5:53")
         #expect(Formatters.speed(606.9192) == "10:07")
         #expect(Formatters.speed(737.391) == "12:18")
+
+        #expect(Formatters.speed(-382.17819) == "")
+        #expect(Formatters.speed(.nan) == "")
     }
 
     @Test func testHeartRateFormatting() {
@@ -81,6 +86,9 @@ struct FormattersTests {
         #expect(Formatters.heartRate(125.4) == "125")
         #expect(Formatters.heartRate(125.6) == "126")
         #expect(Formatters.heartRate(216.1948) == "216")
+
+        #expect(Formatters.heartRate(-145) == "")
+        #expect(Formatters.heartRate(.nan) == "")
     }
 
 }
