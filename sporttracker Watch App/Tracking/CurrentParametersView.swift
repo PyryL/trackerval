@@ -56,7 +56,7 @@ struct CurrentParametersView: View {
 }
 
 #Preview {
-    let trackingManager = TrackingManager()
+    let trackingManager = TrackingManager(endTracking: { })
     trackingManager.isStarted = true
     trackingManager.startDate = Date(timeIntervalSinceNow: -758.1733) // 12:38
     trackingManager.segmentDates = [Date(timeIntervalSinceNow: -99.315)] // 1:39

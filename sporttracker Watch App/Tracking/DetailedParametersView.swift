@@ -213,7 +213,7 @@ fileprivate struct TrackingNumericInfoLabel: View {
 }
 
 #Preview {
-    let trackingManager = TrackingManager()
+    let trackingManager = TrackingManager(endTracking: { })
     trackingManager.isStarted = true
     trackingManager.startDate = Date(timeIntervalSinceNow: -758.1733)
     trackingManager.segmentDates = [

@@ -13,7 +13,6 @@ struct TrackingMenu: View {
 
     var body: some View {
         NavigationStack {
-            // TODO: implement all actions
             List {
                 NavigationLink {
                     intervalPreparationView
@@ -28,7 +27,11 @@ struct TrackingMenu: View {
                     Label("New segment", systemImage: "arrow.triangle.capsulepath")
                 }
 
-                Button(action: { }) {
+                Button(action: {
+                    Task {
+                        await trackingManager.endWorkout()
+                    }
+                }) {
                     Label("End workout", systemImage: "xmark")
                 }
             }
@@ -51,6 +54,6 @@ struct TrackingMenu: View {
 }
 
 #Preview {
-    let trackingManager = TrackingManager()
+    let trackingManager = TrackingManager(endTracking: { })
     return TrackingMenu(trackingManager: trackingManager, closeMenu: { })
 }

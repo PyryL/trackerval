@@ -8,6 +8,12 @@
 import Foundation
 
 class TrackingManager: ObservableObject {
+    init(endTracking: @escaping () -> ()) {
+        self.endTracking = endTracking
+    }
+
+    private let endTracking: () -> ()
+
     @Published var isStarted: Bool = false
 
     @Published var startDate: Date? = nil
@@ -55,6 +61,13 @@ class TrackingManager: ObservableObject {
                 }
             }
         }
+    }
+
+    func endWorkout() async {
+        guard await workoutManager.endWorkout() else {
+            return
+        }
+        endTracking()
     }
 }
 

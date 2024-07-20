@@ -12,7 +12,7 @@ struct ContentView: View {
 
     var body: some View {
         if isTracking {
-            TrackingView()
+            TrackingView(endTracking: { isTracking = false })
         } else {
             MenuView(startTracking: { isTracking = true })
         }

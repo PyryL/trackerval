@@ -93,6 +93,23 @@ class WorkoutManager: NSObject {
         return endDate
     }
 
+    func endWorkout() async -> Bool {
+        session?.end()
+
+        do {
+            try await builder?.endCollection(at: .now)
+            try await builder?.finishWorkout()
+        } catch {
+            print(error)
+            return false
+        }
+
+        session = nil
+        builder = nil
+
+        return true
+    }
+
     func loadParameter(_ parameter: LoadableParameter, startDate: Date, endDate: Date) async -> Double? {
         guard let healthStore else {
             return nil

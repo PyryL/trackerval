@@ -8,12 +8,13 @@
 import SwiftUI
 
 struct TrackingView: View {
-    init(trackingManager: TrackingManager = TrackingManager()) {
+    init(trackingManager: TrackingManager? = nil, endTracking: @escaping () -> ()) {
+        let trackingManager = trackingManager ?? TrackingManager(endTracking: endTracking)
         self._trackingManager = .init(wrappedValue: trackingManager)
         currentParametersView = CurrentParametersView(trackingManager: trackingManager)
     }
 
-    @StateObject var trackingManager = TrackingManager()
+    @StateObject var trackingManager: TrackingManager
     let currentParametersView: CurrentParametersView
 
     var body: some View {
@@ -74,7 +75,7 @@ struct TrackingView: View {
 }
 
 #Preview {
-    let trackingManager = TrackingManager()
+    let trackingManager = TrackingManager(endTracking: { })
     trackingManager.isStarted = true
     trackingManager.startDate = Date(timeIntervalSinceNow: -758.1733) // 12:38
     trackingManager.segmentDates = [Date(timeIntervalSinceNow: -99.315)] // 1:39
@@ -84,5 +85,5 @@ struct TrackingView: View {
     trackingManager.averageHeartRate = 128.419
     trackingManager.currentHeartRate = 135
 //    trackingManager.intervalStatus = .preparedForInterval
-    return TrackingView(trackingManager: trackingManager)
+    return TrackingView(trackingManager: trackingManager, endTracking: { })
 }
