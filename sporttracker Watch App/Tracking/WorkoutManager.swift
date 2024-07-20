@@ -92,6 +92,49 @@ class WorkoutManager: NSObject {
 
         return endDate
     }
+
+    func loadParameter(_ parameter: LoadableParameter, startDate: Date, endDate: Date) async -> Double? {
+        guard let healthStore else {
+            return nil
+        }
+
+        let sampleType = HKQuantityType(parameter.quantityTypeIdentifier)
+        let predicate = HKQuery.predicateForSamples(withStart: startDate, end: endDate)
+
+        return await withUnsafeContinuation { continuation in
+            let query = HKStatisticsQuery(quantityType: sampleType, quantitySamplePredicate: predicate) { _, statistics, error in
+
+                guard let statistics else {
+                    print(error as Any)
+                    continuation.resume(returning: nil)
+                    return
+                }
+
+                let value = statistics.sumQuantity()?.doubleValue(for: parameter.unit)
+                continuation.resume(returning: value)
+            }
+
+            healthStore.execute(query)
+        }
+    }
+
+    enum LoadableParameter {
+        case distance
+
+        var quantityTypeIdentifier: HKQuantityTypeIdentifier {
+            switch self {
+            case .distance:
+                HKQuantityTypeIdentifier.distanceWalkingRunning
+            }
+        }
+
+        var unit: HKUnit {
+            switch self {
+            case .distance:
+                HKUnit.meter()
+            }
+        }
+    }
 }
 
 extension WorkoutManager: HKWorkoutSessionDelegate {

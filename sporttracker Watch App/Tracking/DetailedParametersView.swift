@@ -11,17 +11,55 @@ struct DetailedParametersView: View {
     @ObservedObject var trackingManager: TrackingManager
     @State var segment: Int? = nil
 
+    @State private var distance: Double? = 0
+
+    private var isCurrentSegment: Bool {
+        segment == trackingManager.segmentDates.count
+    }
+
+    /// End date of the selected segment, if it's not total or current.
+    private var segmentEndDate: Date? {
+        guard let segment, !isCurrentSegment else {
+            return nil
+        }
+
+        return trackingManager.segmentDates[segment]
+    }
+
+    /// Start date of the selected segment.
+    private var segmentStartDate: Date {
+        guard let segment, segment > 0 else {
+            return trackingManager.startDate ?? .distantPast
+        }
+
+        return trackingManager.segmentDates[segment-1]
+    }
+
     private var segmentDuration: Double {
-        guard let segment,
-              segment < trackingManager.segmentDates.count,
-              let workoutStartDate = trackingManager.startDate else {
+        guard let segmentEndDate else {
             return 0
         }
 
-        let endDate = trackingManager.segmentDates[segment]
-        let startDate = segment == 0 ? workoutStartDate : trackingManager.segmentDates[segment-1]
+        return segmentEndDate.timeIntervalSince(segmentStartDate)
+    }
 
-        return endDate.timeIntervalSince(startDate)
+    private func updateDistance() {
+        guard segment != nil else {
+            distance = trackingManager.distance
+            return
+        }
+
+        distance = nil
+
+        Task {
+            guard let distance = await trackingManager.workoutManager.loadParameter(.distance, startDate: segmentStartDate, endDate: segmentEndDate ?? .now) else {
+                return
+            }
+
+            DispatchQueue.main.async {
+                self.distance = distance
+            }
+        }
     }
 
     var body: some View {
@@ -42,13 +80,23 @@ struct DetailedParametersView: View {
             }
 
             TrackingNumericInfoLabel(
-                value: Formatters.distance(trackingManager.distance),
+                value: distance != nil ? Formatters.distance(distance!) : "...",
                 unit: "km",
                 systemImage: "ruler")
+            .onChange(of: segment) { updateDistance() }
+            .onChange(of: trackingManager.distance) { _, newValue in
+                if segment == nil {
+                    distance = newValue
+                } else if isCurrentSegment {
+                    updateDistance()
+                }
+            }
+
             TrackingNumericInfoLabel(
                 value: Formatters.duration(trackingManager.averageSpeed, withFraction: false),
                 unit: "/km",
                 systemImage: "speedometer")
+
             TrackingNumericInfoLabel(
                 value: Formatters.heartRate(trackingManager.averageHeartRate),
                 unit: "/min",
