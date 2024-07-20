@@ -10,11 +10,17 @@ import Foundation
 class Formatters {
     /// - Returns: The given meters converted to kilometers and formatted without unit.
     static func distance(_ meters: Double) -> String {
+        guard meters >= 0.0 else {
+            return ""
+        }
+
         let formatter = NumberFormatter()
+        formatter.locale = Locale(identifier: "en_US")
         formatter.minimumFractionDigits = 2
         formatter.maximumFractionDigits = 2
 
-        let kilometers = meters / 1000.0
+        let tensMeters = floor(meters / 10.0)
+        let kilometers = tensMeters / 100.0
         return formatter.string(from: kilometers as NSNumber) ?? "\(kilometers)"
     }
 

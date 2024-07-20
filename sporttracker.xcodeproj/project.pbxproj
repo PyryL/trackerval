@@ -18,6 +18,13 @@
 			remoteGlobalIDString = 4479931D2C4A6045001033A7;
 			remoteInfo = "sporttracker Watch App";
 		};
+		447993622C4C0028001033A7 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 447993062C4A6045001033A7 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 4479931D2C4A6045001033A7;
+			remoteInfo = "sporttracker Watch App";
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -37,11 +44,23 @@
 /* Begin PBXFileReference section */
 		4479930E2C4A6045001033A7 /* sporttracker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = sporttracker.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		4479931E2C4A6045001033A7 /* sporttracker Watch App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "sporttracker Watch App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		4479935E2C4C0028001033A7 /* sporttrackerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = sporttrackerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		447993682C4C007F001033A7 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Utilities/Formatters.swift,
+			);
+			target = 4479935D2C4C0028001033A7 /* sporttrackerTests */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		447993102C4A6045001033A7 /* sporttracker */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = sporttracker; sourceTree = "<group>"; };
-		447993222C4A6046001033A7 /* sporttracker Watch App */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = "sporttracker Watch App"; sourceTree = "<group>"; };
+		447993222C4A6046001033A7 /* sporttracker Watch App */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (447993682C4C007F001033A7 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = "sporttracker Watch App"; sourceTree = "<group>"; };
+		4479935F2C4C0028001033A7 /* sporttrackerTests */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = sporttrackerTests; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -59,6 +78,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		4479935B2C4C0028001033A7 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -67,6 +93,7 @@
 			children = (
 				447993102C4A6045001033A7 /* sporttracker */,
 				447993222C4A6046001033A7 /* sporttracker Watch App */,
+				4479935F2C4C0028001033A7 /* sporttrackerTests */,
 				4479930F2C4A6045001033A7 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -76,6 +103,7 @@
 			children = (
 				4479930E2C4A6045001033A7 /* sporttracker.app */,
 				4479931E2C4A6045001033A7 /* sporttracker Watch App.app */,
+				4479935E2C4C0028001033A7 /* sporttrackerTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -129,6 +157,29 @@
 			productReference = 4479931E2C4A6045001033A7 /* sporttracker Watch App.app */;
 			productType = "com.apple.product-type.application";
 		};
+		4479935D2C4C0028001033A7 /* sporttrackerTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 447993642C4C0028001033A7 /* Build configuration list for PBXNativeTarget "sporttrackerTests" */;
+			buildPhases = (
+				4479935A2C4C0028001033A7 /* Sources */,
+				4479935B2C4C0028001033A7 /* Frameworks */,
+				4479935C2C4C0028001033A7 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				447993632C4C0028001033A7 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				4479935F2C4C0028001033A7 /* sporttrackerTests */,
+			);
+			name = sporttrackerTests;
+			packageProductDependencies = (
+			);
+			productName = sporttrackerTests;
+			productReference = 4479935E2C4C0028001033A7 /* sporttrackerTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -144,6 +195,10 @@
 					};
 					4479931D2C4A6045001033A7 = {
 						CreatedOnToolsVersion = 16.0;
+					};
+					4479935D2C4C0028001033A7 = {
+						CreatedOnToolsVersion = 16.0;
+						TestTargetID = 4479931D2C4A6045001033A7;
 					};
 				};
 			};
@@ -162,6 +217,7 @@
 			targets = (
 				4479930D2C4A6045001033A7 /* sporttracker */,
 				4479931D2C4A6045001033A7 /* sporttracker Watch App */,
+				4479935D2C4C0028001033A7 /* sporttrackerTests */,
 			);
 		};
 /* End PBXProject section */
@@ -175,6 +231,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		4479931C2C4A6045001033A7 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		4479935C2C4C0028001033A7 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -198,6 +261,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		4479935A2C4C0028001033A7 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -205,6 +275,11 @@
 			isa = PBXTargetDependency;
 			target = 4479931D2C4A6045001033A7 /* sporttracker Watch App */;
 			targetProxy = 447993202C4A6045001033A7 /* PBXContainerItemProxy */;
+		};
+		447993632C4C0028001033A7 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 4479931D2C4A6045001033A7 /* sporttracker Watch App */;
+			targetProxy = 447993622C4C0028001033A7 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -457,6 +532,47 @@
 			};
 			name = Release;
 		};
+		447993652C4C0028001033A7 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = K464C9RC38;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = info.pyry.apps.sporttrackerTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/sporttracker Watch App.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/sporttracker Watch App";
+				WATCHOS_DEPLOYMENT_TARGET = 11.0;
+			};
+			name = Debug;
+		};
+		447993662C4C0028001033A7 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = K464C9RC38;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = info.pyry.apps.sporttrackerTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/sporttracker Watch App.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/sporttracker Watch App";
+				VALIDATE_PRODUCT = YES;
+				WATCHOS_DEPLOYMENT_TARGET = 11.0;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -483,6 +599,15 @@
 			buildConfigurations = (
 				447993332C4A6046001033A7 /* Debug */,
 				447993342C4A6046001033A7 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		447993642C4C0028001033A7 /* Build configuration list for PBXNativeTarget "sporttrackerTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				447993652C4C0028001033A7 /* Debug */,
+				447993662C4C0028001033A7 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
