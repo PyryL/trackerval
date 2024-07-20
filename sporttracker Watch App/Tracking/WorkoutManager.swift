@@ -110,7 +110,7 @@ class WorkoutManager: NSObject {
                     return
                 }
 
-                let value = statistics.sumQuantity()?.doubleValue(for: parameter.unit)
+                let value = parameter.getDoubleValue(statistics: statistics)
                 continuation.resume(returning: value)
             }
 
@@ -119,19 +119,23 @@ class WorkoutManager: NSObject {
     }
 
     enum LoadableParameter {
-        case distance
+        case distance, averageHeartRate
 
         var quantityTypeIdentifier: HKQuantityTypeIdentifier {
             switch self {
             case .distance:
                 HKQuantityTypeIdentifier.distanceWalkingRunning
+            case .averageHeartRate:
+                HKQuantityTypeIdentifier.heartRate
             }
         }
 
-        var unit: HKUnit {
+        func getDoubleValue(statistics: HKStatistics) -> Double? {
             switch self {
             case .distance:
-                HKUnit.meter()
+                statistics.sumQuantity()?.doubleValue(for: .meter())
+            case .averageHeartRate:
+                statistics.averageQuantity()?.doubleValue(for: .countPerMinute())
             }
         }
     }

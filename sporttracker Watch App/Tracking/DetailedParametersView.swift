@@ -12,6 +12,7 @@ struct DetailedParametersView: View {
     @State var segment: Int? = nil
 
     @State private var distance: Double? = 0
+    @State private var averageHeartRate: Double? = nil
 
     private var isCurrentSegment: Bool {
         segment == trackingManager.segmentDates.count
@@ -62,6 +63,23 @@ struct DetailedParametersView: View {
         }
     }
 
+    private func updateHeartRate() {
+        guard segment != nil else {
+            averageHeartRate = trackingManager.averageHeartRate
+            return
+        }
+
+        averageHeartRate = nil
+
+        Task {
+            let averageHeartRate = await trackingManager.workoutManager.loadParameter(.averageHeartRate, startDate: segmentStartDate, endDate: segmentEndDate ?? .now)
+
+            DispatchQueue.main.async {
+                self.averageHeartRate = averageHeartRate
+            }
+        }
+    }
+
     var body: some View {
         Form {
             if segment == nil {
@@ -98,9 +116,17 @@ struct DetailedParametersView: View {
                 systemImage: "speedometer")
 
             TrackingNumericInfoLabel(
-                value: Formatters.heartRate(trackingManager.averageHeartRate),
-                unit: "/min",
+                value: averageHeartRate != nil ? Formatters.heartRate(averageHeartRate!) : "...",
+                unit: "",
                 systemImage: "heart")
+            .onChange(of: segment) { updateHeartRate() }
+            .onChange(of: trackingManager.averageHeartRate) { _, newValue in
+                if segment == nil {
+                    averageHeartRate = newValue
+                } else if isCurrentSegment {
+                    updateHeartRate()
+                }
+            }
         }
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
