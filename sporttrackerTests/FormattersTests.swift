@@ -1,5 +1,5 @@
 //
-//  sporttrackerTests.swift
+//  FormattersTests.swift
 //  sporttrackerTests
 //
 //  Created by Pyry Lahtinen on 20.7.2024.
