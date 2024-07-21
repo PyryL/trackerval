@@ -69,9 +69,11 @@ class TrackingManager: ObservableObject {
         }
     }
 
-    func endWorkout() async {
+    func endWorkout() {
         status = .ending
-        let _ = await workoutManager.endWorkout()
+        Task {
+            let _ = await workoutManager.endWorkout()
+        }
     }
 }
 

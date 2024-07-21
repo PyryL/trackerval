@@ -45,9 +45,7 @@ struct TrackingMenu: View {
                 .alert("End workout?", isPresented: $showEndWorkoutAlert) {
                     Button("Cancel", role: .cancel) { }
                     Button("End", role: .destructive) {
-                        Task {
-                            await trackingManager.endWorkout()
-                        }
+                        trackingManager.endWorkout()
                     }
                 }
             }
