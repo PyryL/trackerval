@@ -27,6 +27,8 @@ class TrackingManager: ObservableObject {
     @Published var intervalStatus: IntervalStatus = .disabled
     @Published var segmentDates: [Date] = []
 
+    @Published var pacerInterval: Double? = nil
+
 
     let workoutManager = WorkoutManager()
 
