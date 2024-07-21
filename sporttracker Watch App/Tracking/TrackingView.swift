@@ -19,10 +19,11 @@ struct TrackingView: View {
 
     var body: some View {
         Group {
-            if trackingManager.isStarted {
-                activeTrackingView
-            } else {
+            switch trackingManager.status {
+            case .starting:
                 startingView
+            case .running, .ending:
+                activeTrackingView
             }
         }
         .onAppear(perform: trackingManager.startWorkout)
@@ -76,7 +77,7 @@ struct TrackingView: View {
 
 #Preview {
     let trackingManager = TrackingManager(endTracking: { })
-    trackingManager.isStarted = true
+    trackingManager.status = .running
     trackingManager.startDate = Date(timeIntervalSinceNow: -758.1733) // 12:38
     trackingManager.segmentDates = [Date(timeIntervalSinceNow: -99.315)] // 1:39
     trackingManager.distance = 1912.156

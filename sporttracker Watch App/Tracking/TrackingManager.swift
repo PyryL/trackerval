@@ -15,7 +15,7 @@ class TrackingManager: ObservableObject {
 
     private let endTracking: () -> ()
 
-    @Published var isStarted: Bool = false
+    @Published var status: TrackingStatus = .starting
 
     @Published var startDate: Date? = nil
     @Published var distance: Double = 0
@@ -31,6 +31,10 @@ class TrackingManager: ObservableObject {
     let workoutManager = WorkoutManager()
 
     func startWorkout() {
+        guard status == .starting, startDate == nil else {
+            return
+        }
+
         Task {
             workoutManager.delegate = self
             await workoutManager.requestAuthorization()
@@ -38,15 +42,14 @@ class TrackingManager: ObservableObject {
                 return
             }
             DispatchQueue.main.async {
-                self.isStarted = true
                 self.startDate = startDate
             }
-            WKInterfaceDevice.current().play(.success)
         }
     }
 
     func addSegment() {
-        guard let segmentStart = segmentDates.last ?? startDate,
+        guard status == .running,
+              let segmentStart = segmentDates.last ?? startDate,
               -segmentStart.timeIntervalSinceNow >= 1.0 else {
             return
         }
@@ -67,15 +70,26 @@ class TrackingManager: ObservableObject {
     }
 
     func endWorkout() async {
-        guard await workoutManager.endWorkout() else {
-            return
-        }
-        endTracking()
-        WKInterfaceDevice.current().play(.failure)
+        status = .ending
+        let _ = await workoutManager.endWorkout()
     }
 }
 
 extension TrackingManager: WorkoutManagerDelegate {
+    func workoutManagerUpdated(workoutState: WorkoutManager.WorkoutState) {
+        if workoutState == .started {
+            DispatchQueue.main.async {
+                self.status = .running
+            }
+            WKInterfaceDevice.current().play(.success)
+        } else if workoutState == .ended {
+            DispatchQueue.main.async {
+                self.endTracking()
+            }
+            WKInterfaceDevice.current().play(.failure)
+        }
+    }
+
     func workoutManagerUpdated(distance: Double) {
         DispatchQueue.main.async {
             self.distance = distance
@@ -99,4 +113,8 @@ extension TrackingManager: WorkoutManagerDelegate {
 
 enum IntervalStatus {
     case disabled, preparedForInterval, ongoing
+}
+
+enum TrackingStatus {
+    case starting, running, ending
 }

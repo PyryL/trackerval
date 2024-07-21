@@ -77,7 +77,7 @@ fileprivate struct ParameterView: View {
 
 #Preview {
     let trackingManager = TrackingManager(endTracking: { })
-    trackingManager.isStarted = true
+    trackingManager.status = .running
     trackingManager.startDate = Date(timeIntervalSinceNow: -758.1733) // 12:38
     trackingManager.segmentDates = [Date(timeIntervalSinceNow: -99.315)] // 1:39
     trackingManager.distance = 1912.156

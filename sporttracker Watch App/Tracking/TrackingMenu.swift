@@ -32,7 +32,18 @@ struct TrackingMenu: View {
                         await trackingManager.endWorkout()
                     }
                 }) {
-                    Label("End workout", systemImage: "xmark")
+                    Label {
+                        Text("End workout")
+                    } icon: {
+                        Group {
+                            if trackingManager.status != .ending {
+                                Image(systemName: "xmark")
+                            } else {
+                                ProgressView()
+                                    .progressViewStyle(.circular)
+                            }
+                        }
+                    }
                 }
             }
         }

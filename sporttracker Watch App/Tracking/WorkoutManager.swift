@@ -104,9 +104,6 @@ class WorkoutManager: NSObject {
             return false
         }
 
-        session = nil
-        builder = nil
-
         return true
     }
 
@@ -171,11 +168,20 @@ class WorkoutManager: NSObject {
             }
         }
     }
+
+    enum WorkoutState {
+        case started, ended
+    }
 }
 
 extension WorkoutManager: HKWorkoutSessionDelegate {
     func workoutSession(_ workoutSession: HKWorkoutSession, didChangeTo toState: HKWorkoutSessionState, from fromState: HKWorkoutSessionState, date: Date) {
-        print("session state \(fromState.description) -> \(toState.description)")
+
+        if toState == .ended {
+            delegate?.workoutManagerUpdated(workoutState: .ended)
+        } else if toState == .running, fromState == .notStarted {
+            delegate?.workoutManagerUpdated(workoutState: .started)
+        }
     }
 
     func workoutSession(_ workoutSession: HKWorkoutSession, didFailWithError error: any Error) {
@@ -244,6 +250,7 @@ extension WorkoutManager: HKLiveWorkoutBuilderDelegate {
 }
 
 protocol WorkoutManagerDelegate {
+    func workoutManagerUpdated(workoutState: WorkoutManager.WorkoutState)
     /// - Parameter distance: Total distance measured in meters.
     func workoutManagerUpdated(distance: Double)
     /// - Parameter averageSpeed: Average speed across the whole workout measured in seconds per kilometer.
