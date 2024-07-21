@@ -69,27 +69,35 @@ class TrackingManager: ObservableObject {
               -segmentStart.timeIntervalSinceNow >= 1.0 else {
             return
         }
-        Task {
-            if let segmentEnd = await self.workoutManager.addSegment(startDate: segmentStart) {
-                DispatchQueue.main.async {
-                    self.segmentDates.append(segmentEnd)
 
-                    if self.intervalStatus == .preparedForInterval {
-                        self.intervalStatus = .ongoing
-                        if let pacerInterval = self.pacerInterval {
-                            self.pacerTimer?.invalidate()
-                            self.pacerTimer = Timer.scheduledTimer(withTimeInterval: pacerInterval, repeats: true) { _ in
-                                WKInterfaceDevice.current().play(.notification)
-                            }
-                        }
-                    } else if self.intervalStatus == .ongoing {
-                        self.intervalStatus = .disabled
-                        self.pacerTimer?.invalidate()
-                        self.pacerTimer = nil
-                    }
-                }
-                WKInterfaceDevice.current().play(.retry) // or .notification
+        Task {
+            let segmentEnd: Date
+            do {
+                segmentEnd = try await self.workoutManager.addSegment(startDate: segmentStart)
+            } catch {
+                print(error)
+                return
             }
+
+            DispatchQueue.main.async {
+                self.segmentDates.append(segmentEnd)
+
+                if self.intervalStatus == .preparedForInterval {
+                    self.intervalStatus = .ongoing
+                    if let pacerInterval = self.pacerInterval {
+                        self.pacerTimer?.invalidate()
+                        self.pacerTimer = Timer.scheduledTimer(withTimeInterval: pacerInterval, repeats: true) { _ in
+                            WKInterfaceDevice.current().play(.notification)
+                        }
+                    }
+                } else if self.intervalStatus == .ongoing {
+                    self.intervalStatus = .disabled
+                    self.pacerTimer?.invalidate()
+                    self.pacerTimer = nil
+                }
+            }
+
+            WKInterfaceDevice.current().play(.retry) // or .notification
         }
     }
 

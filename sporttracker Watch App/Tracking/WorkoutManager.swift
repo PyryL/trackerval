@@ -92,20 +92,17 @@ class WorkoutManager: NSObject {
 
     /// - Parameter startDate: The date when the old segment, that is currently being ended, originally started.
     /// - Returns: The date when the old segment ended and the new one started.
-    func addSegment(startDate: Date) async -> Date? {
-        guard let builder else { return nil }
+    func addSegment(startDate: Date) async throws -> Date {
+        guard let builder else {
+            throw WorkoutError.notRunning
+        }
 
         let endDate: Date = .now
         let event = HKWorkoutEvent(type: .segment,
                                    dateInterval: DateInterval(start: startDate, end: endDate),
                                    metadata: nil)
 
-        do {
-            try await builder.addWorkoutEvents([event])
-        } catch {
-            print("segment adding failed", error)
-            return nil
-        }
+        try await builder.addWorkoutEvents([event])
 
         return endDate
     }
@@ -197,7 +194,7 @@ class WorkoutManager: NSObject {
     }
 
     enum WorkoutError: Error {
-        case healthDataUnavailable, savingFailed
+        case healthDataUnavailable, notRunning, savingFailed
     }
 }
 
@@ -283,6 +280,8 @@ extension WorkoutManager.WorkoutError: LocalizedError {
             "Your device does not support health data."
         case .savingFailed:
             "Failed to save the workout."
+        case .notRunning:
+            nil
         }
     }
 }
