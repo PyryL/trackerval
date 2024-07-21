@@ -33,11 +33,11 @@ struct TrackingMenu: View {
                         Text("End workout")
                     } icon: {
                         Group {
-                            if trackingManager.status != .ending {
-                                Image(systemName: "xmark")
-                            } else {
+                            if case .ending = trackingManager.status {
                                 ProgressView()
                                     .progressViewStyle(.circular)
+                            } else {
+                                Image(systemName: "xmark")
                             }
                         }
                     }

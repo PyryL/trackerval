@@ -6,6 +6,7 @@
 //
 
 import HealthKit
+import CoreLocation
 
 class WorkoutManager: NSObject {
     override init() {
@@ -19,58 +20,74 @@ class WorkoutManager: NSObject {
 
     private let healthStore: HKHealthStore?
 
+    private let locationManager = LocationManager()
+
     private var session: HKWorkoutSession? = nil
     private var builder: HKLiveWorkoutBuilder? = nil
+    private var routeBuilder: HKWorkoutRouteBuilder? = nil
 
     public var delegate: WorkoutManagerDelegate? = nil
 
-    func requestAuthorization() async {
-        guard let healthStore else { return }
+    func requestAuthorization() async throws {
+        guard let healthStore else {
+            throw WorkoutError.healthDataUnavailable
+        }
+
         let types: Set = [
             HKQuantityType.workoutType(),
+            HKSeriesType.workoutRoute(),
             HKQuantityType(.distanceWalkingRunning),
             HKQuantityType(.heartRate),
             HKQuantityType(.runningSpeed),
         ]
-        do {
-            try await healthStore.requestAuthorization(toShare: types, read: types)
-        } catch {
-            // should never end up in here
-            fatalError()
-        }
+
+        try await healthStore.requestAuthorization(toShare: types, read: types)
+
+        try await locationManager.requestAuthorization()
     }
 
-    func startWorkout() async -> Date? {
-        guard let healthStore, session == nil else { return nil }
+    func startWorkout() async throws -> Date? {
+        guard let healthStore else {
+            throw WorkoutError.healthDataUnavailable
+        }
+        guard session == nil else {
+            return nil
+        }
 
         let configuration = HKWorkoutConfiguration()
         configuration.activityType = .running
         configuration.locationType = .outdoor
 
-        do {
-            session = try HKWorkoutSession(healthStore: healthStore, configuration: configuration)
-        } catch {
-            print(error)
-            return nil
-        }
-
+        session = try HKWorkoutSession(healthStore: healthStore, configuration: configuration)
         session!.delegate = self
 
         builder = session!.associatedWorkoutBuilder()
         builder!.delegate = self
         builder!.dataSource = HKLiveWorkoutDataSource(healthStore: healthStore,
-                                                     workoutConfiguration: configuration)
+                                                      workoutConfiguration: configuration)
+
+        routeBuilder = HKWorkoutRouteBuilder(healthStore: healthStore, device: nil)
 
         let startDate: Date = .now
         session!.startActivity(with: startDate)
-        do {
-            try await builder!.beginCollection(at: startDate)
-        } catch {
-            print("builder start failed", error)
-            return nil
-        }
+        try await builder!.beginCollection(at: startDate)
+        locationManager.startUpdating(receivedUpdatedLocation)
 
         return startDate
+    }
+
+    private func receivedUpdatedLocation(_ locations: [CLLocation]) {
+        guard let routeBuilder else {
+            return
+        }
+
+        Task {
+            do {
+                try await routeBuilder.insertRouteData(locations)
+            } catch {
+                print("failed to insert route", error)
+            }
+        }
     }
 
     /// - Parameter startDate: The date when the old segment, that is currently being ended, originally started.
@@ -96,9 +113,15 @@ class WorkoutManager: NSObject {
     func endWorkout() async -> Bool {
         session?.end()
 
+        locationManager.stopUpdating()
+
         do {
             try await builder?.endCollection(at: .now)
-            try await builder?.finishWorkout()
+            guard let workout = try await builder?.finishWorkout() else {
+                throw WorkoutError.savingFailed
+            }
+
+            try await routeBuilder?.finishRoute(with: workout, metadata: nil)
         } catch {
             print(error)
             return false
@@ -171,6 +194,10 @@ class WorkoutManager: NSObject {
 
     enum WorkoutState {
         case started, ended
+    }
+
+    enum WorkoutError: Error {
+        case healthDataUnavailable, savingFailed
     }
 }
 
@@ -246,6 +273,17 @@ extension WorkoutManager: HKLiveWorkoutBuilderDelegate {
 
     func workoutBuilderDidCollectEvent(_ workoutBuilder: HKLiveWorkoutBuilder) {
         print("event collected", workoutBuilder.workoutEvents.last as Any)
+    }
+}
+
+extension WorkoutManager.WorkoutError: LocalizedError {
+    var errorDescription: String? {
+        switch self {
+        case .healthDataUnavailable:
+            "Your device does not support health data."
+        case .savingFailed:
+            "Failed to save the workout."
+        }
     }
 }
 
