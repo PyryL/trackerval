@@ -104,9 +104,25 @@ class TrackingManager: ObservableObject {
     func endWorkout() {
         pacerTimer?.invalidate()
         pacerTimer = nil
+
         status = .ending
+
         Task {
-            let _ = await workoutManager.endWorkout()
+            do {
+                try await workoutManager.endWorkout(lastSegmentDate: self.segmentDates.last)
+            } catch {
+                DispatchQueue.main.async {
+                    self.status = .failed(error)
+                }
+                print(error)
+                return
+            }
+
+            DispatchQueue.main.async {
+                self.endTracking()
+            }
+
+            WKInterfaceDevice.current().play(.failure)
         }
     }
 
@@ -125,11 +141,6 @@ extension TrackingManager: WorkoutManagerDelegate {
                 self.status = .running
             }
             WKInterfaceDevice.current().play(.success)
-        } else if workoutState == .ended {
-            DispatchQueue.main.async {
-                self.endTracking()
-            }
-            WKInterfaceDevice.current().play(.failure)
         }
     }
 
