@@ -115,6 +115,7 @@ class WorkoutManager: NSObject {
     }
 
     /// - Parameter startDate: The date when the old segment, that is currently being ended, originally started.
+    /// - Parameter endDate: The date when the old segment ends. Defaults to the current date.
     /// - Returns: The date when the old segment ended and the new one started.
     func addSegment(startDate: Date, endDate: Date? = nil) async throws -> Date {
         guard let builder else {
@@ -131,19 +132,24 @@ class WorkoutManager: NSObject {
         return endDate
     }
 
+    /// - Parameter lastSegmentDate: The date when the last segment (that is currently running) started, if any.
     func endWorkout(lastSegmentDate: Date?) async throws {
-        guard workoutEndCallback == nil else {
+        guard let session, workoutEndCallback == nil else {
             return
         }
         workoutEndLastSegmentDate = lastSegmentDate
 
-        session?.end()
+        session.end()
 
         let _: Bool = try await withUnsafeThrowingContinuation { continuation in
             workoutEndCallback = { error in
-                DispatchQueue.main.async {
-                    self.workoutEndCallback = nil
+                self.workoutEndCallback = nil
 
+                self.session = nil
+                self.builder = nil
+                self.routeBuilder = nil
+
+                DispatchQueue.main.async {
                     if let error {
                         continuation.resume(throwing: error)
                     } else {
@@ -320,7 +326,7 @@ extension WorkoutManager: HKLiveWorkoutBuilderDelegate {
     }
 
     func workoutBuilderDidCollectEvent(_ workoutBuilder: HKLiveWorkoutBuilder) {
-        print("event collected", workoutBuilder.workoutEvents.last as Any)
+        //
     }
 }
 

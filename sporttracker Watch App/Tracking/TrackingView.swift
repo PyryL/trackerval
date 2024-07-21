@@ -20,7 +20,7 @@ struct TrackingView: View {
     var body: some View {
         Group {
             switch trackingManager.status {
-            case .starting:
+            case .notStarted, .starting:
                 startingView
             case .running, .ending:
                 activeTrackingView
