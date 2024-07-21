@@ -104,7 +104,7 @@ struct DetailedParametersView: View {
                 TrackingNumericInfoLabel(
                     date: trackingManager.startDate ?? .distantPast,
                     systemImage: "stopwatch")
-            } else if segment == trackingManager.segmentDates.count {
+            } else if isCurrentSegment {
                 TrackingNumericInfoLabel(
                     date: trackingManager.segmentDates.last ?? .distantPast,
                     systemImage: "stopwatch")
@@ -119,6 +119,7 @@ struct DetailedParametersView: View {
                 value: distance != nil ? Formatters.distance(distance!) : "...",
                 unit: "km",
                 systemImage: "ruler")
+            .onAppear(perform: updateDistance)
             .onChange(of: segment) { updateDistance() }
             .onChange(of: trackingManager.distance) { _, newValue in
                 if segment == nil {
@@ -132,6 +133,7 @@ struct DetailedParametersView: View {
                 value: averageSpeed != nil ? Formatters.speed(averageSpeed!) : "...",
                 unit: "/ km",
                 systemImage: "speedometer")
+            .onAppear(perform: updateSpeed)
             .onChange(of: segment) { updateSpeed() }
             .onChange(of: trackingManager.averageSpeed) { _, newValue in
                 if segment == nil {
@@ -145,6 +147,7 @@ struct DetailedParametersView: View {
                 value: averageHeartRate != nil ? Formatters.heartRate(averageHeartRate!) : "...",
                 unit: "",
                 systemImage: "heart")
+            .onAppear(perform: updateHeartRate)
             .onChange(of: segment) { updateHeartRate() }
             .onChange(of: trackingManager.averageHeartRate) { _, newValue in
                 if segment == nil {
