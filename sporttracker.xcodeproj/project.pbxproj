@@ -421,6 +421,7 @@
 				INFOPLIST_KEY_CFBundleDisplayName = Trackerval;
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "App uses your health to track the workout.";
 				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "App uses your health to track the workout.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "App uses location data to track the workout route.";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = info.pyry.apps.sporttracker;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -455,6 +456,7 @@
 				INFOPLIST_KEY_CFBundleDisplayName = Trackerval;
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "App uses your health to track the workout.";
 				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "App uses your health to track the workout.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "App uses location data to track the workout route.";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = info.pyry.apps.sporttracker;
 				LD_RUNPATH_SEARCH_PATHS = (

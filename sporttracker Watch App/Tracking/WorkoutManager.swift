@@ -6,6 +6,7 @@
 //
 
 import HealthKit
+import CoreLocation
 
 class WorkoutManager: NSObject {
     override init() {
@@ -19,8 +20,11 @@ class WorkoutManager: NSObject {
 
     private let healthStore: HKHealthStore?
 
+    private let locationManager = LocationManager()
+
     private var session: HKWorkoutSession? = nil
     private var builder: HKLiveWorkoutBuilder? = nil
+    private var routeBuilder: HKWorkoutRouteBuilder? = nil
 
     public var delegate: WorkoutManagerDelegate? = nil
 
@@ -28,6 +32,7 @@ class WorkoutManager: NSObject {
         guard let healthStore else { return }
         let types: Set = [
             HKQuantityType.workoutType(),
+            HKSeriesType.workoutRoute(),
             HKQuantityType(.distanceWalkingRunning),
             HKQuantityType(.heartRate),
             HKQuantityType(.runningSpeed),
@@ -38,6 +43,7 @@ class WorkoutManager: NSObject {
             // should never end up in here
             fatalError()
         }
+        await locationManager.requestAuthorization()
     }
 
     func startWorkout() async -> Date? {
@@ -61,6 +67,8 @@ class WorkoutManager: NSObject {
         builder!.dataSource = HKLiveWorkoutDataSource(healthStore: healthStore,
                                                      workoutConfiguration: configuration)
 
+        routeBuilder = HKWorkoutRouteBuilder(healthStore: healthStore, device: nil)
+
         let startDate: Date = .now
         session!.startActivity(with: startDate)
         do {
@@ -69,8 +77,23 @@ class WorkoutManager: NSObject {
             print("builder start failed", error)
             return nil
         }
+        locationManager.startUpdating(receivedUpdatedLocation)
 
         return startDate
+    }
+
+    private func receivedUpdatedLocation(_ locations: [CLLocation]) {
+        guard let routeBuilder else {
+            return
+        }
+
+        Task {
+            do {
+                try await routeBuilder.insertRouteData(locations)
+            } catch {
+                print("failed to insert route", error)
+            }
+        }
     }
 
     /// - Parameter startDate: The date when the old segment, that is currently being ended, originally started.
@@ -95,6 +118,8 @@ class WorkoutManager: NSObject {
 
     func endWorkout() async -> Bool {
         session?.end()
+
+        locationManager.stopUpdating()
 
         do {
             try await builder?.endCollection(at: .now)
