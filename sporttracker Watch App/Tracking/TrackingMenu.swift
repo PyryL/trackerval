@@ -10,6 +10,7 @@ import SwiftUI
 struct TrackingMenu: View {
     @ObservedObject var trackingManager: TrackingManager
     var closeMenu: () -> ()
+    @State var showEndWorkoutAlert: Bool = false
 
     var body: some View {
         NavigationStack {
@@ -27,11 +28,7 @@ struct TrackingMenu: View {
                     Label("New segment", systemImage: "arrow.triangle.capsulepath")
                 }
 
-                Button(action: {
-                    Task {
-                        await trackingManager.endWorkout()
-                    }
-                }) {
+                Button(action: { showEndWorkoutAlert = true }) {
                     Label {
                         Text("End workout")
                     } icon: {
@@ -42,6 +39,14 @@ struct TrackingMenu: View {
                                 ProgressView()
                                     .progressViewStyle(.circular)
                             }
+                        }
+                    }
+                }
+                .alert("End workout?", isPresented: $showEndWorkoutAlert) {
+                    Button("Cancel", role: .cancel) { }
+                    Button("End", role: .destructive) {
+                        Task {
+                            await trackingManager.endWorkout()
                         }
                     }
                 }
