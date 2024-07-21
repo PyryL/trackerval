@@ -28,6 +28,8 @@ class WorkoutManager: NSObject {
 
     public var delegate: WorkoutManagerDelegate? = nil
 
+    private var workoutStartCallback: Optional<() -> ()> = nil
+
     private var workoutEndLastSegmentDate: Date? = nil
     private var workoutEndCallback: Optional<(Error?) -> ()> = nil
 
@@ -71,12 +73,30 @@ class WorkoutManager: NSObject {
 
         routeBuilder = HKWorkoutRouteBuilder(healthStore: healthStore, device: nil)
 
-        let startDate: Date = .now
-        session!.startActivity(with: startDate)
-        try await builder!.beginCollection(at: startDate)
-        locationManager.startUpdating(receivedUpdatedLocation)
+        session!.startActivity(with: .now)
 
-        return startDate
+        return try await withUnsafeThrowingContinuation { continuation in
+            workoutStartCallback = {
+                self.workoutStartCallback = nil
+
+                guard let startDate = self.session!.startDate else {
+                    fatalError()
+                }
+
+                Task {
+                    do {
+                        try await self.builder!.beginCollection(at: startDate)
+                    } catch {
+                        continuation.resume(throwing: error)
+                        return
+                    }
+
+                    self.locationManager.startUpdating(self.receivedUpdatedLocation)
+
+                    continuation.resume(returning: startDate)
+                }
+            }
+        }
     }
 
     private func receivedUpdatedLocation(_ locations: [CLLocation]) {
@@ -223,10 +243,6 @@ class WorkoutManager: NSObject {
         }
     }
 
-    enum WorkoutState {
-        case started, ended
-    }
-
     enum WorkoutError: Error {
         case healthDataUnavailable, notRunning, savingFailed
     }
@@ -238,7 +254,7 @@ extension WorkoutManager: HKWorkoutSessionDelegate {
         if toState == .ended {
             finishWorkoutEnding()
         } else if toState == .running, fromState == .notStarted {
-            delegate?.workoutManagerUpdated(workoutState: .started)
+            workoutStartCallback?()
         }
     }
 
@@ -321,7 +337,6 @@ extension WorkoutManager.WorkoutError: LocalizedError {
 }
 
 protocol WorkoutManagerDelegate {
-    func workoutManagerUpdated(workoutState: WorkoutManager.WorkoutState)
     /// - Parameter distance: Total distance measured in meters.
     func workoutManagerUpdated(distance: Double)
     /// - Parameter averageSpeed: Average speed across the whole workout measured in seconds per kilometer.

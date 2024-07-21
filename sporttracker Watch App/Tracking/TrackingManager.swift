@@ -59,7 +59,10 @@ class TrackingManager: ObservableObject {
 
             DispatchQueue.main.async {
                 self.startDate = startDate
+                self.status = .running
             }
+
+            WKInterfaceDevice.current().play(.success)
         }
     }
 
@@ -135,15 +138,6 @@ class TrackingManager: ObservableObject {
 }
 
 extension TrackingManager: WorkoutManagerDelegate {
-    func workoutManagerUpdated(workoutState: WorkoutManager.WorkoutState) {
-        if workoutState == .started {
-            DispatchQueue.main.async {
-                self.status = .running
-            }
-            WKInterfaceDevice.current().play(.success)
-        }
-    }
-
     func workoutManagerUpdated(distance: Double) {
         DispatchQueue.main.async {
             self.distance = distance
