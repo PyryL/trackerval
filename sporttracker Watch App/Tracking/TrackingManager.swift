@@ -28,6 +28,7 @@ class TrackingManager: ObservableObject {
     @Published var segmentDates: [Date] = []
 
     @Published var pacerInterval: Double? = nil
+    private var pacerTimer: Timer? = nil
 
 
     let workoutManager = WorkoutManager()
@@ -62,8 +63,16 @@ class TrackingManager: ObservableObject {
 
                     if self.intervalStatus == .preparedForInterval {
                         self.intervalStatus = .ongoing
+                        if let pacerInterval = self.pacerInterval {
+                            self.pacerTimer?.invalidate()
+                            self.pacerTimer = Timer.scheduledTimer(withTimeInterval: pacerInterval, repeats: true) { _ in
+                                WKInterfaceDevice.current().play(.notification)
+                            }
+                        }
                     } else if self.intervalStatus == .ongoing {
                         self.intervalStatus = .disabled
+                        self.pacerTimer?.invalidate()
+                        self.pacerTimer = nil
                     }
                 }
                 WKInterfaceDevice.current().play(.retry) // or .notification
@@ -72,6 +81,8 @@ class TrackingManager: ObservableObject {
     }
 
     func endWorkout() {
+        pacerTimer?.invalidate()
+        pacerTimer = nil
         status = .ending
         Task {
             let _ = await workoutManager.endWorkout()
