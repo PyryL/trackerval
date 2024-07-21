@@ -51,6 +51,7 @@ class WorkoutManager: NSObject {
         try await locationManager.requestAuthorization()
     }
 
+    /// - Returns: The date when the workout started, or `nil` if the workout was already started.
     func startWorkout() async throws -> Date? {
         guard let healthStore else {
             throw WorkoutError.healthDataUnavailable

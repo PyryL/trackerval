@@ -16,7 +16,7 @@ class TrackingManager: ObservableObject {
 
     private let endTracking: () -> ()
 
-    @Published var status: TrackingStatus = .starting
+    @Published var status: TrackingStatus = .notStarted
 
     @Published var startDate: Date? = nil
     @Published var distance: Double = 0
@@ -35,9 +35,11 @@ class TrackingManager: ObservableObject {
     let workoutManager = WorkoutManager()
 
     func startWorkout() {
-        guard case .starting = status, startDate == nil else {
+        guard case .notStarted = status, startDate == nil else {
             return
         }
+
+        status = .starting
 
         Task {
             let startDate: Date?
@@ -164,5 +166,5 @@ enum IntervalStatus {
 }
 
 enum TrackingStatus {
-    case starting, running, ending, failed(Error)
+    case notStarted, starting, running, ending, failed(Error)
 }
