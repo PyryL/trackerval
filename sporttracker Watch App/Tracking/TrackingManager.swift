@@ -16,7 +16,7 @@ class TrackingManager: ObservableObject {
 
     private let endTracking: () -> ()
 
-    @Published var status: TrackingStatus = .starting
+    @Published var status: TrackingStatus = .notStarted
 
     @Published var startDate: Date? = nil
     @Published var distance: Double = 0
@@ -35,9 +35,11 @@ class TrackingManager: ObservableObject {
     let workoutManager = WorkoutManager()
 
     func startWorkout() {
-        guard case .starting = status, startDate == nil else {
+        guard case .notStarted = status, startDate == nil else {
             return
         }
+
+        status = .starting
 
         Task {
             let startDate: Date?
@@ -59,7 +61,10 @@ class TrackingManager: ObservableObject {
 
             DispatchQueue.main.async {
                 self.startDate = startDate
+                self.status = .running
             }
+
+            WKInterfaceDevice.current().play(.success)
         }
     }
 
@@ -69,36 +74,60 @@ class TrackingManager: ObservableObject {
               -segmentStart.timeIntervalSinceNow >= 1.0 else {
             return
         }
-        Task {
-            if let segmentEnd = await self.workoutManager.addSegment(startDate: segmentStart) {
-                DispatchQueue.main.async {
-                    self.segmentDates.append(segmentEnd)
 
-                    if self.intervalStatus == .preparedForInterval {
-                        self.intervalStatus = .ongoing
-                        if let pacerInterval = self.pacerInterval {
-                            self.pacerTimer?.invalidate()
-                            self.pacerTimer = Timer.scheduledTimer(withTimeInterval: pacerInterval, repeats: true) { _ in
-                                WKInterfaceDevice.current().play(.notification)
-                            }
-                        }
-                    } else if self.intervalStatus == .ongoing {
-                        self.intervalStatus = .disabled
-                        self.pacerTimer?.invalidate()
-                        self.pacerTimer = nil
-                    }
-                }
-                WKInterfaceDevice.current().play(.retry) // or .notification
+        Task {
+            let segmentEnd: Date
+            do {
+                segmentEnd = try await self.workoutManager.addSegment(startDate: segmentStart)
+            } catch {
+                print(error)
+                return
             }
+
+            DispatchQueue.main.async {
+                self.segmentDates.append(segmentEnd)
+
+                if self.intervalStatus == .preparedForInterval {
+                    self.intervalStatus = .ongoing
+                    if let pacerInterval = self.pacerInterval {
+                        self.pacerTimer?.invalidate()
+                        self.pacerTimer = Timer.scheduledTimer(withTimeInterval: pacerInterval, repeats: true) { _ in
+                            WKInterfaceDevice.current().play(.notification)
+                        }
+                    }
+                } else if self.intervalStatus == .ongoing {
+                    self.intervalStatus = .disabled
+                    self.pacerTimer?.invalidate()
+                    self.pacerTimer = nil
+                }
+            }
+
+            WKInterfaceDevice.current().play(.retry) // or .notification
         }
     }
 
     func endWorkout() {
         pacerTimer?.invalidate()
         pacerTimer = nil
+
         status = .ending
+
         Task {
-            let _ = await workoutManager.endWorkout()
+            do {
+                try await workoutManager.endWorkout(lastSegmentDate: self.segmentDates.last)
+            } catch {
+                DispatchQueue.main.async {
+                    self.status = .failed(error)
+                }
+                print(error)
+                return
+            }
+
+            DispatchQueue.main.async {
+                self.endTracking()
+            }
+
+            WKInterfaceDevice.current().play(.failure)
         }
     }
 
@@ -111,20 +140,6 @@ class TrackingManager: ObservableObject {
 }
 
 extension TrackingManager: WorkoutManagerDelegate {
-    func workoutManagerUpdated(workoutState: WorkoutManager.WorkoutState) {
-        if workoutState == .started {
-            DispatchQueue.main.async {
-                self.status = .running
-            }
-            WKInterfaceDevice.current().play(.success)
-        } else if workoutState == .ended {
-            DispatchQueue.main.async {
-                self.endTracking()
-            }
-            WKInterfaceDevice.current().play(.failure)
-        }
-    }
-
     func workoutManagerUpdated(distance: Double) {
         DispatchQueue.main.async {
             self.distance = distance
@@ -151,5 +166,5 @@ enum IntervalStatus {
 }
 
 enum TrackingStatus {
-    case starting, running, ending, failed(Error)
+    case notStarted, starting, running, ending, failed(Error)
 }

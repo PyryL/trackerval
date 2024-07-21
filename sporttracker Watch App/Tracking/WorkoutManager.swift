@@ -28,6 +28,11 @@ class WorkoutManager: NSObject {
 
     public var delegate: WorkoutManagerDelegate? = nil
 
+    private var workoutStartCallback: Optional<() -> ()> = nil
+
+    private var workoutEndLastSegmentDate: Date? = nil
+    private var workoutEndCallback: Optional<(Error?) -> ()> = nil
+
     func requestAuthorization() async throws {
         guard let healthStore else {
             throw WorkoutError.healthDataUnavailable
@@ -46,6 +51,7 @@ class WorkoutManager: NSObject {
         try await locationManager.requestAuthorization()
     }
 
+    /// - Returns: The date when the workout started, or `nil` if the workout was already started.
     func startWorkout() async throws -> Date? {
         guard let healthStore else {
             throw WorkoutError.healthDataUnavailable
@@ -68,12 +74,30 @@ class WorkoutManager: NSObject {
 
         routeBuilder = HKWorkoutRouteBuilder(healthStore: healthStore, device: nil)
 
-        let startDate: Date = .now
-        session!.startActivity(with: startDate)
-        try await builder!.beginCollection(at: startDate)
-        locationManager.startUpdating(receivedUpdatedLocation)
+        session!.startActivity(with: .now)
 
-        return startDate
+        return try await withUnsafeThrowingContinuation { continuation in
+            workoutStartCallback = {
+                self.workoutStartCallback = nil
+
+                guard let startDate = self.session!.startDate else {
+                    fatalError()
+                }
+
+                Task {
+                    do {
+                        try await self.builder!.beginCollection(at: startDate)
+                    } catch {
+                        continuation.resume(throwing: error)
+                        return
+                    }
+
+                    self.locationManager.startUpdating(self.receivedUpdatedLocation)
+
+                    continuation.resume(returning: startDate)
+                }
+            }
+        }
     }
 
     private func receivedUpdatedLocation(_ locations: [CLLocation]) {
@@ -91,43 +115,77 @@ class WorkoutManager: NSObject {
     }
 
     /// - Parameter startDate: The date when the old segment, that is currently being ended, originally started.
+    /// - Parameter endDate: The date when the old segment ends. Defaults to the current date.
     /// - Returns: The date when the old segment ended and the new one started.
-    func addSegment(startDate: Date) async -> Date? {
-        guard let builder else { return nil }
+    func addSegment(startDate: Date, endDate: Date? = nil) async throws -> Date {
+        guard let builder else {
+            throw WorkoutError.notRunning
+        }
 
-        let endDate: Date = .now
+        let endDate: Date = endDate ?? .now
         let event = HKWorkoutEvent(type: .segment,
                                    dateInterval: DateInterval(start: startDate, end: endDate),
                                    metadata: nil)
 
-        do {
-            try await builder.addWorkoutEvents([event])
-        } catch {
-            print("segment adding failed", error)
-            return nil
-        }
+        try await builder.addWorkoutEvents([event])
 
         return endDate
     }
 
-    func endWorkout() async -> Bool {
-        session?.end()
+    /// - Parameter lastSegmentDate: The date when the last segment (that is currently running) started, if any.
+    func endWorkout(lastSegmentDate: Date?) async throws {
+        guard let session, workoutEndCallback == nil else {
+            return
+        }
+        workoutEndLastSegmentDate = lastSegmentDate
 
-        locationManager.stopUpdating()
+        session.end()
 
-        do {
-            try await builder?.endCollection(at: .now)
-            guard let workout = try await builder?.finishWorkout() else {
-                throw WorkoutError.savingFailed
+        let _: Bool = try await withUnsafeThrowingContinuation { continuation in
+            workoutEndCallback = { error in
+                self.workoutEndCallback = nil
+
+                self.session = nil
+                self.builder = nil
+                self.routeBuilder = nil
+
+                DispatchQueue.main.async {
+                    if let error {
+                        continuation.resume(throwing: error)
+                    } else {
+                        continuation.resume(returning: true)
+                    }
+                }
             }
+        }
+    }
 
-            try await routeBuilder?.finishRoute(with: workout, metadata: nil)
-        } catch {
-            print(error)
-            return false
+    private func finishWorkoutEnding() {
+        guard let endDate = session?.endDate else {
+            fatalError()
         }
 
-        return true
+        Task {
+            do {
+                if let lastSegmentDate = self.workoutEndLastSegmentDate {
+                    let _ = try await addSegment(startDate: lastSegmentDate, endDate: endDate)
+                }
+                self.workoutEndLastSegmentDate = nil
+
+                try await builder?.endCollection(at: endDate)
+                guard let workout = try await builder?.finishWorkout() else {
+                    throw WorkoutError.savingFailed
+                }
+
+                locationManager.stopUpdating()
+                try await routeBuilder?.finishRoute(with: workout, metadata: nil)
+            } catch {
+                workoutEndCallback?(error)
+                return
+            }
+
+            workoutEndCallback?(nil)
+        }
     }
 
     func loadParameter(_ parameter: LoadableParameter, startDate: Date, endDate: Date) async -> Double? {
@@ -192,12 +250,8 @@ class WorkoutManager: NSObject {
         }
     }
 
-    enum WorkoutState {
-        case started, ended
-    }
-
     enum WorkoutError: Error {
-        case healthDataUnavailable, savingFailed
+        case healthDataUnavailable, notRunning, savingFailed
     }
 }
 
@@ -205,9 +259,9 @@ extension WorkoutManager: HKWorkoutSessionDelegate {
     func workoutSession(_ workoutSession: HKWorkoutSession, didChangeTo toState: HKWorkoutSessionState, from fromState: HKWorkoutSessionState, date: Date) {
 
         if toState == .ended {
-            delegate?.workoutManagerUpdated(workoutState: .ended)
+            finishWorkoutEnding()
         } else if toState == .running, fromState == .notStarted {
-            delegate?.workoutManagerUpdated(workoutState: .started)
+            workoutStartCallback?()
         }
     }
 
@@ -272,7 +326,7 @@ extension WorkoutManager: HKLiveWorkoutBuilderDelegate {
     }
 
     func workoutBuilderDidCollectEvent(_ workoutBuilder: HKLiveWorkoutBuilder) {
-        print("event collected", workoutBuilder.workoutEvents.last as Any)
+        //
     }
 }
 
@@ -283,12 +337,13 @@ extension WorkoutManager.WorkoutError: LocalizedError {
             "Your device does not support health data."
         case .savingFailed:
             "Failed to save the workout."
+        case .notRunning:
+            nil
         }
     }
 }
 
 protocol WorkoutManagerDelegate {
-    func workoutManagerUpdated(workoutState: WorkoutManager.WorkoutState)
     /// - Parameter distance: Total distance measured in meters.
     func workoutManagerUpdated(distance: Double)
     /// - Parameter averageSpeed: Average speed across the whole workout measured in seconds per kilometer.
