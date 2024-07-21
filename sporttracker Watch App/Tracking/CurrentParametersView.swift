@@ -17,30 +17,19 @@ struct CurrentParametersView: View {
             HStack {
                 Spacer()
             }
-            Text(currentParameterViewDuration)
+            ParameterView(value: currentParameterViewDuration, systemImage: "stopwatch")
                 .updates(interval: 0.05) {
                     guard let date = trackingManager.segmentDates.last ?? trackingManager.startDate else {
                         return
                     }
                     currentParameterViewDuration = Formatters.duration(-date.timeIntervalSinceNow)
                 }
-            Text(Formatters.speed(trackingManager.currentSpeed) + " /km")
-            Text(Formatters.heartRate(trackingManager.currentHeartRate) + " bpm")
+            ParameterView(value: Formatters.speed(trackingManager.currentSpeed), systemImage: "speedometer")
+            ParameterView(value: Formatters.heartRate(trackingManager.currentHeartRate), systemImage: "heart")
             if trackingManager.intervalStatus != .disabled {
-                HStack {
-                    Spacer()
-                    Image(systemName: "flag")
-                    Text(trackingManager.intervalStatus == .preparedForInterval ? "Prepared for interval" : "Interval")
-                    Spacer()
-                }
-                .font(.footnote)
-                .foregroundStyle(trackingManager.intervalStatus == .preparedForInterval ? .blue : .orange)
+                intervalModeLabel
             }
         }
-        .lineLimit(1)
-        .font(.system(size: 99, weight: .semibold, design: .rounded))
-        .minimumScaleFactor(0.1)
-        .foregroundStyle(trackingManager.intervalStatus == .disabled ? Color("SportNeon") : .primary)
         .background()
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
@@ -52,6 +41,37 @@ struct CurrentParametersView: View {
         .sheet(isPresented: $showMenu) {
             TrackingMenu(trackingManager: trackingManager, closeMenu: { showMenu = false })
         }
+    }
+
+    private var intervalModeLabel: some View {
+        HStack {
+            Spacer()
+            Image(systemName: "flag")
+            Text(trackingManager.intervalStatus == .preparedForInterval ? "Prepared for interval" : "Interval")
+            Spacer()
+        }
+        .font(.footnote)
+        .foregroundStyle(trackingManager.intervalStatus == .preparedForInterval ? .blue : .orange)
+    }
+}
+
+fileprivate struct ParameterView: View {
+    var value: String
+    var systemImage: String
+
+    var body: some View {
+        Text(value)
+            .lineLimit(1)
+            .font(.system(size: 99, weight: .semibold, design: .rounded).monospacedDigit())
+            .minimumScaleFactor(0.1)
+            .padding(.leading, 20)
+            .overlay(alignment: .leadingFirstTextBaseline) {
+                Image(systemName: systemImage)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 16, height: 16)
+                    .foregroundStyle(Color("SportNeon"))
+            }
     }
 }
 
