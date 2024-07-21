@@ -9,11 +9,44 @@ import SwiftUI
 
 struct MenuView: View {
     var startTracking: () -> ()
+    @State var showsInfo: Bool = false
 
     var body: some View {
         NavigationStack {
+            // TODO: implement activity types
+            Button(action: { }) {
+                Label("Outdoor run", systemImage: "figure.run")
+            }
+
             Button(action: startTracking) {
-                Label("Start tracking", systemImage: "figure.run")
+                Label("Start tracking", systemImage: "play")
+            }
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button(action: { showsInfo = true }) {
+                        Label("Show info", systemImage: "info.circle")
+                    }
+                }
+            }
+            .sheet(isPresented: $showsInfo) {
+                InfoView()
+            }
+        }
+    }
+}
+
+fileprivate struct InfoView: View {
+    private var appVersionLabel: String {
+        let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String
+        let buildNumber = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String
+        return "Version \(version ?? "x.x") (\(buildNumber ?? "x"))"
+    }
+
+    var body: some View {
+        Form {
+            Section(header: Text("About"), footer: Text(appVersionLabel)) {
+                Label("Pyry Lahtinen / WinterFog", systemImage: "person")
+                    .bold()
             }
         }
     }
