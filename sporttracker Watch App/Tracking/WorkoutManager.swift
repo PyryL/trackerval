@@ -28,8 +28,11 @@ class WorkoutManager: NSObject {
 
     public var delegate: WorkoutManagerDelegate? = nil
 
-    func requestAuthorization() async {
-        guard let healthStore else { return }
+    func requestAuthorization() async throws {
+        guard let healthStore else {
+            throw WorkoutError.healthDataUnavailable
+        }
+
         let types: Set = [
             HKQuantityType.workoutType(),
             HKSeriesType.workoutRoute(),
@@ -37,46 +40,37 @@ class WorkoutManager: NSObject {
             HKQuantityType(.heartRate),
             HKQuantityType(.runningSpeed),
         ]
-        do {
-            try await healthStore.requestAuthorization(toShare: types, read: types)
-        } catch {
-            // should never end up in here
-            fatalError()
-        }
-        await locationManager.requestAuthorization()
+
+        try await healthStore.requestAuthorization(toShare: types, read: types)
+
+        try await locationManager.requestAuthorization()
     }
 
-    func startWorkout() async -> Date? {
-        guard let healthStore, session == nil else { return nil }
+    func startWorkout() async throws -> Date? {
+        guard let healthStore else {
+            throw WorkoutError.healthDataUnavailable
+        }
+        guard session == nil else {
+            return nil
+        }
 
         let configuration = HKWorkoutConfiguration()
         configuration.activityType = .running
         configuration.locationType = .outdoor
 
-        do {
-            session = try HKWorkoutSession(healthStore: healthStore, configuration: configuration)
-        } catch {
-            print(error)
-            return nil
-        }
-
+        session = try HKWorkoutSession(healthStore: healthStore, configuration: configuration)
         session!.delegate = self
 
         builder = session!.associatedWorkoutBuilder()
         builder!.delegate = self
         builder!.dataSource = HKLiveWorkoutDataSource(healthStore: healthStore,
-                                                     workoutConfiguration: configuration)
+                                                      workoutConfiguration: configuration)
 
         routeBuilder = HKWorkoutRouteBuilder(healthStore: healthStore, device: nil)
 
         let startDate: Date = .now
         session!.startActivity(with: startDate)
-        do {
-            try await builder!.beginCollection(at: startDate)
-        } catch {
-            print("builder start failed", error)
-            return nil
-        }
+        try await builder!.beginCollection(at: startDate)
         locationManager.startUpdating(receivedUpdatedLocation)
 
         return startDate
@@ -197,6 +191,10 @@ class WorkoutManager: NSObject {
     enum WorkoutState {
         case started, ended
     }
+
+    enum WorkoutError: Error {
+        case healthDataUnavailable
+    }
 }
 
 extension WorkoutManager: HKWorkoutSessionDelegate {
@@ -271,6 +269,15 @@ extension WorkoutManager: HKLiveWorkoutBuilderDelegate {
 
     func workoutBuilderDidCollectEvent(_ workoutBuilder: HKLiveWorkoutBuilder) {
         print("event collected", workoutBuilder.workoutEvents.last as Any)
+    }
+}
+
+extension WorkoutManager.WorkoutError: LocalizedError {
+    var errorDescription: String? {
+        switch self {
+        case .healthDataUnavailable:
+            "Your device does not support health data."
+        }
     }
 }
 

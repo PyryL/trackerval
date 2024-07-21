@@ -24,6 +24,8 @@ struct TrackingView: View {
                 startingView
             case .running, .ending:
                 activeTrackingView
+            case .failed(let error):
+                failedView(error: error)
             }
         }
         .onAppear(perform: trackingManager.startWorkout)
@@ -55,6 +57,27 @@ struct TrackingView: View {
         }
     }
 
+    private func failedView(error: Error) -> some View {
+        ScrollView {
+            VStack {
+                Image(systemName: "exclamationmark.triangle.fill")
+                    .foregroundColor(.orange)
+                Text("Workout failed")
+                    .font(.headline)
+
+                if let userError = error as? LocalizedError,
+                   let description = userError.errorDescription ?? userError.recoverySuggestion {
+                    Text(description)
+                        .multilineTextAlignment(.center)
+                }
+
+                Button("Back to menu") {
+                    trackingManager.quitToMenu()
+                }
+            }
+        }
+    }
+
     private struct QuickSegmentingModifier: ViewModifier {
         var action: () -> ()
         @State private var dragTriggered: Bool = false
@@ -78,6 +101,7 @@ struct TrackingView: View {
 #Preview {
     let trackingManager = TrackingManager(endTracking: { })
     trackingManager.status = .running
+//    trackingManager.status = .failed(LocationManager.LocationError.reducedAccuracy)
     trackingManager.startDate = Date(timeIntervalSinceNow: -758.1733) // 12:38
     trackingManager.segmentDates = [Date(timeIntervalSinceNow: -99.315)] // 1:39
     trackingManager.distance = 1912.156

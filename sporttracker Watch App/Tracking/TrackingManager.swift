@@ -11,6 +11,7 @@ import WatchKit
 class TrackingManager: ObservableObject {
     init(endTracking: @escaping () -> ()) {
         self.endTracking = endTracking
+        workoutManager.delegate = self
     }
 
     private let endTracking: () -> ()
@@ -34,16 +35,28 @@ class TrackingManager: ObservableObject {
     let workoutManager = WorkoutManager()
 
     func startWorkout() {
-        guard status == .starting, startDate == nil else {
+        guard case .starting = status, startDate == nil else {
             return
         }
 
         Task {
-            workoutManager.delegate = self
-            await workoutManager.requestAuthorization()
-            guard let startDate = await workoutManager.startWorkout() else {
+            let startDate: Date?
+
+            do {
+                try await workoutManager.requestAuthorization()
+                startDate = try await workoutManager.startWorkout()
+            } catch {
+                DispatchQueue.main.async {
+                    self.status = .failed(error)
+                }
+                print(error)
                 return
             }
+
+            guard let startDate else {
+                return
+            }
+
             DispatchQueue.main.async {
                 self.startDate = startDate
             }
@@ -51,7 +64,7 @@ class TrackingManager: ObservableObject {
     }
 
     func addSegment() {
-        guard status == .running,
+        guard case .running = status,
               let segmentStart = segmentDates.last ?? startDate,
               -segmentStart.timeIntervalSinceNow >= 1.0 else {
             return
@@ -87,6 +100,13 @@ class TrackingManager: ObservableObject {
         Task {
             let _ = await workoutManager.endWorkout()
         }
+    }
+
+    func quitToMenu() {
+        guard case .failed(_) = status else {
+            return
+        }
+        endTracking()
     }
 }
 
@@ -131,5 +151,5 @@ enum IntervalStatus {
 }
 
 enum TrackingStatus {
-    case starting, running, ending
+    case starting, running, ending, failed(Error)
 }
