@@ -117,7 +117,11 @@ class WorkoutManager: NSObject {
 
         do {
             try await builder?.endCollection(at: .now)
-            try await builder?.finishWorkout()
+            guard let workout = try await builder?.finishWorkout() else {
+                throw WorkoutError.savingFailed
+            }
+
+            try await routeBuilder?.finishRoute(with: workout, metadata: nil)
         } catch {
             print(error)
             return false
@@ -193,7 +197,7 @@ class WorkoutManager: NSObject {
     }
 
     enum WorkoutError: Error {
-        case healthDataUnavailable
+        case healthDataUnavailable, savingFailed
     }
 }
 
@@ -277,6 +281,8 @@ extension WorkoutManager.WorkoutError: LocalizedError {
         switch self {
         case .healthDataUnavailable:
             "Your device does not support health data."
+        case .savingFailed:
+            "Failed to save the workout."
         }
     }
 }
