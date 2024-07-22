@@ -17,7 +17,6 @@ struct WorkoutView: View {
     @State var segmentDates: [Date] = []
     @State var segment: Int? = nil
     @State var locations: [CLLocation] = []
-    @State fileprivate var heartRates: [PlotDataItem] = []
     @State var distance: Double? = nil
 
     var segmentStart: Date {
@@ -43,17 +42,6 @@ struct WorkoutView: View {
         }
 
         return locations[startIndex ... endIndex]
-    }
-
-    fileprivate var segmentHeartRates: ArraySlice<PlotDataItem> {
-        guard let startIndex = heartRates.firstIndex(where: { $0.date >= segmentStart }),
-              let endIndex = heartRates.lastIndex(where: { $0.date <= segmentEnd }),
-              startIndex < endIndex else {
-
-            return []
-        }
-
-        return heartRates[startIndex ... endIndex]
     }
 
     func getSegments() {
@@ -85,17 +73,6 @@ struct WorkoutView: View {
             locations = try await healthManager.getRoute(workout: workout)
         } catch {
             print("failed to load locations", error)
-        }
-    }
-
-    func getHeartRates() async {
-        do {
-            let samples = try await healthManager.getHeartRate(workout: workout)
-            heartRates = samples.map {
-                PlotDataItem(date: $0.startDate, value: $0.quantity.doubleValue(for: .countPerMinute()))
-            }
-        } catch {
-            print("failed to load heart rates", error)
         }
     }
 
@@ -139,13 +116,19 @@ struct WorkoutView: View {
                 Label(distance != nil ? Formatters.distance(distance!) + " km" : "...", systemImage: "ruler")
                     .onAppear(perform: updateDistance)
 
-                if !segmentHeartRates.isEmpty {
-                    Chart(segmentHeartRates) {
-                        LineMark(x: .value("Time", $0.date),
-                                 y: .value("Heart rate", $0.value))
-                    }
-                    .chartYScale(domain: heartRates.map { $0.value }.min()!-10 ... heartRates.map { $0.value }.max()!+10)
-                }
+                WorkoutPlotView(sampleType: HKQuantityType(.heartRate),
+                                value: { $0.doubleValue(for: .countPerMinute()) },
+                                segmentStart: segmentStart,
+                                segmentEnd: segmentEnd,
+                                workout: workout,
+                                healthManager: healthManager)
+
+                WorkoutPlotView(sampleType: HKQuantityType(.runningSpeed),
+                                value: { $0.doubleValue(for: .kilometerPerSecond()).inverse() },
+                                segmentStart: segmentStart,
+                                segmentEnd: segmentEnd,
+                                workout: workout,
+                                healthManager: healthManager)
             }
         }
         .navigationTitle(workout.startDate.formatted(date: .numeric, time: .shortened))
@@ -153,15 +136,8 @@ struct WorkoutView: View {
         .onAppear(perform: getSegments)
         .task {
             await getLocations()
-            await getHeartRates()
         }
     }
-}
-
-fileprivate struct PlotDataItem: Identifiable {
-    var id = UUID()
-    var date: Date
-    var value: Double
 }
 
 //#Preview {

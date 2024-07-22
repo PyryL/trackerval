@@ -78,17 +78,16 @@ class HealthManager {
         }
     }
 
-    func getHeartRate(workout: HKWorkout) async throws -> [HKQuantitySample] {
+    func getData(_ sampleType: HKQuantityType, workout: HKWorkout) async throws -> [HKQuantitySample] {
         guard let healthStore else {
             throw HealthError.healthNotAvailable
         }
 
-        let heartRateType = HKQuantityType(.heartRate)
         let workoutPredicate = HKQuery.predicateForObjects(from: workout)
 
         return try await withCheckedThrowingContinuation { continuation in
 
-            let query = HKSampleQuery(sampleType: heartRateType, predicate: workoutPredicate, limit: HKObjectQueryNoLimit, sortDescriptors: nil) { _, samples, error in
+            let query = HKSampleQuery(sampleType: sampleType, predicate: workoutPredicate, limit: HKObjectQueryNoLimit, sortDescriptors: nil) { _, samples, error in
 
                 if let error {
                     continuation.resume(throwing: error)
