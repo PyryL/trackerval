@@ -27,6 +27,7 @@ class TrackingManager: ObservableObject {
 
     @Published var intervalStatus: IntervalStatus = .disabled
     @Published var segmentDates: [Date] = []
+    @Published var isAddingSegment: Bool = false
 
     @Published var pacerInterval: Double? = nil
     private var pacerTimer: Timer? = nil
@@ -72,22 +73,28 @@ class TrackingManager: ObservableObject {
 
     func addSegment() {
         guard case .running = status,
+              !isAddingSegment,
               let segmentStart = segmentDates.last ?? startDate,
               -segmentStart.timeIntervalSinceNow >= 1.0 else {
             return
         }
+        isAddingSegment = true
 
         Task {
             let segmentEnd: Date
             do {
                 segmentEnd = try await self.workoutManager.addSegment(startDate: segmentStart)
             } catch {
+                DispatchQueue.main.async {
+                    self.isAddingSegment = false
+                }
                 print(error)
                 return
             }
 
             DispatchQueue.main.async {
                 self.segmentDates.append(segmentEnd)
+                self.isAddingSegment = false
 
                 if self.intervalStatus == .preparedForInterval {
                     self.intervalStatus = .ongoing
