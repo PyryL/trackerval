@@ -7,11 +7,15 @@
 
 import SwiftUI
 import HealthKit
+import CoreLocation
+import MapKit
 
 struct WorkoutView: View {
     var workout: HKWorkout
+    var healthManager: HealthManager
     @State var segmentDates: [Date] = []
     @State var segment: Int? = nil
+    @State var locations: [CLLocation] = []
     @State var distance: Double? = nil
 
     var segmentStart: Date {
@@ -26,6 +30,17 @@ struct WorkoutView: View {
             return workout.endDate
         }
         return segmentDates[segment]
+    }
+
+    var segmentLocations: ArraySlice<CLLocation> {
+        guard let startIndex = locations.firstIndex(where: { $0.timestamp >= segmentStart }),
+              let endIndex = locations.lastIndex(where: { $0.timestamp <= segmentEnd }),
+              startIndex < endIndex else {
+
+            return []
+        }
+
+        return locations[startIndex ... endIndex]
     }
 
     func getSegments() {
@@ -52,6 +67,14 @@ struct WorkoutView: View {
         }
     }
 
+    func getLocations() async {
+        do {
+            locations = try await healthManager.getRoute(workout: workout)
+        } catch {
+            print("failed to load locations", error)
+        }
+    }
+
     func updateDistance() {
         let distanceType = HKQuantityType(.distanceWalkingRunning)
         guard let statistics = workout.allStatistics[distanceType] else {
@@ -74,6 +97,18 @@ struct WorkoutView: View {
                 }
             }
 
+            if !locations.isEmpty {
+                Section {
+                    Map {
+                        MapPolyline(coordinates: segmentLocations.map {
+                            CLLocationCoordinate2D(latitude: $0.coordinate.latitude, longitude: $0.coordinate.longitude)
+                        })
+                        .stroke(Color.red, lineWidth: 4)
+                    }
+                    .frame(height: 300)
+                }
+            }
+
             Section {
                 Label(Formatters.duration(workout.duration), systemImage: "stopwatch")
 
@@ -84,6 +119,9 @@ struct WorkoutView: View {
         .navigationTitle(workout.startDate.formatted(date: .numeric, time: .shortened))
         .navigationBarTitleDisplayMode(.inline)
         .onAppear(perform: getSegments)
+        .task {
+            await getLocations()
+        }
     }
 }
 

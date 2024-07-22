@@ -42,7 +42,7 @@ struct ContentView: View {
             }
             .navigationTitle("Workouts")
             .navigationDestination(for: HKWorkout.self) { workout in
-                WorkoutView(workout: workout)
+                WorkoutView(workout: workout, healthManager: healthManager)
             }
         }
         .task {
