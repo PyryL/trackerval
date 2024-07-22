@@ -44,6 +44,10 @@ class WorkoutManager: NSObject {
             HKQuantityType(.distanceWalkingRunning),
             HKQuantityType(.heartRate),
             HKQuantityType(.runningSpeed),
+            HKQuantityType(.runningGroundContactTime),
+            HKQuantityType(.runningStrideLength),
+            HKQuantityType(.runningVerticalOscillation),
+            HKQuantityType(.vo2Max),
         ]
 
         try await healthStore.requestAuthorization(toShare: types, read: types)
