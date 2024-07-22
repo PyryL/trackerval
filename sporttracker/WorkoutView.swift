@@ -87,53 +87,53 @@ struct WorkoutView: View {
     var body: some View {
         Form {
             if !segmentDates.isEmpty {
-                Section {
-                    Picker("Segment", selection: $segment) {
-                        Text("Total").tag(nil as Int?)
-                        ForEach(0...segmentDates.count, id: \.self) { index in
-                            Text("Segment \(index+1)").tag(index)
-                        }
+                Picker("Segment", selection: $segment) {
+                    Text("Total").tag(nil as Int?)
+                    ForEach(0...segmentDates.count, id: \.self) { index in
+                        Text("Segment \(index+1)").tag(index)
                     }
-                    .pickerStyle(.menu)
                 }
+                .pickerStyle(.menu)
             }
 
             if !locations.isEmpty {
-                Section {
-                    Map {
-                        MapPolyline(coordinates: segmentLocations.map {
-                            CLLocationCoordinate2D(latitude: $0.coordinate.latitude, longitude: $0.coordinate.longitude)
-                        })
-                        .stroke(Color.red, lineWidth: 4)
-                    }
-                    .frame(height: 300)
+                Map {
+                    MapPolyline(coordinates: segmentLocations.map {
+                        CLLocationCoordinate2D(latitude: $0.coordinate.latitude, longitude: $0.coordinate.longitude)
+                    })
+                    .stroke(Color.red, lineWidth: 4)
                 }
+                .frame(height: 200)
             }
 
-            Section {
-                Label(Formatters.duration(workout.duration), systemImage: "stopwatch")
+            HStack {
+                Image(systemName: "stopwatch")
+                Text(Formatters.duration(segmentEnd.timeIntervalSince(segmentStart)))
 
-                Label(distance != nil ? Formatters.distance(distance!) + " km" : "...", systemImage: "ruler")
+                Spacer()
+
+                Text(distance != nil ? Formatters.distance(distance!) + " km" : "...")
                     .onAppear(perform: updateDistance)
+                Image(systemName: "ruler")
+            }
 
-                WorkoutPlotView(sampleType: HKQuantityType(.heartRate),
-                                value: { $0.doubleValue(for: .countPerMinute()) },
-                                segmentStart: segmentStart,
-                                segmentEnd: segmentEnd,
-                                workout: workout,
-                                healthManager: healthManager)
+            WorkoutPlotView(sampleType: HKQuantityType(.heartRate),
+                            value: { $0.doubleValue(for: .countPerMinute()) },
+                            segmentStart: segmentStart,
+                            segmentEnd: segmentEnd,
+                            workout: workout,
+                            healthManager: healthManager)
 
-                WorkoutPlotView(sampleType: HKQuantityType(.runningSpeed),
-                                value: { $0.doubleValue(for: .kilometerPerSecond()).inverse() },
-                                segmentStart: segmentStart,
-                                segmentEnd: segmentEnd,
-                                workout: workout,
-                                healthManager: healthManager)
-                .chartYAxis {
-                    AxisMarks { value in
-                        AxisValueLabel {
-                            Text(Formatters.speed(value.as(Double.self)!))
-                        }
+            WorkoutPlotView(sampleType: HKQuantityType(.runningSpeed),
+                            value: { $0.doubleValue(for: .kilometerPerSecond()).inverse() },
+                            segmentStart: segmentStart,
+                            segmentEnd: segmentEnd,
+                            workout: workout,
+                            healthManager: healthManager)
+            .chartYAxis {
+                AxisMarks { value in
+                    AxisValueLabel {
+                        Text(Formatters.speed(value.as(Double.self)!))
                     }
                 }
             }
