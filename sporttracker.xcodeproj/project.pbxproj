@@ -65,6 +65,7 @@
 		44C8AC142C4E93BA004F1324 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				"Tracking/HealthKit+Extensions.swift",
 				Utilities/Formatters.swift,
 			);
 			target = 4479930D2C4A6045001033A7 /* sporttracker */;
