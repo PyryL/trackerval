@@ -34,6 +34,8 @@ class TrackingManager: ObservableObject {
 
     let workoutManager = WorkoutManager()
 
+    let audioPlayer = AudioPlayer()
+
     func startWorkout() {
         guard case .notStarted = status, startDate == nil else {
             return
@@ -103,6 +105,7 @@ class TrackingManager: ObservableObject {
             }
 
             WKInterfaceDevice.current().play(.retry) // or .notification
+            audioPlayer.playNewSegment()
         }
     }
 
