@@ -357,13 +357,3 @@ protocol WorkoutManagerDelegate {
     /// - Parameter currentHeartRate: Latest available heart rate measured in beats per minute.
     func workoutManagerUpdated(averageHeartRate: Double, currentHeartRate: Double)
 }
-
-extension Double {
-    /// - Returns: One divided by the receiver, or zero if the receiver is zero.
-    func inverse() -> Double {
-        guard self != 0.0 else {
-            return 0.0
-        }
-        return 1.0 / self
-    }
-}

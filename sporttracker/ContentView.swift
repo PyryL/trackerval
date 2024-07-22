@@ -6,16 +6,56 @@
 //
 
 import SwiftUI
+import HealthKit
 
 struct ContentView: View {
+    let healthManager = HealthManager()
+    @State var workouts: [HKWorkout] = []
+
+    func workoutTitle(_ workout: HKWorkout) -> String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .short
+        formatter.timeStyle = .short
+        formatter.doesRelativeDateFormatting = true
+        formatter.formattingContext = .listItem
+        return formatter.string(from: workout.startDate)
+    }
+
+    func workoutSubtitle(_ workout: HKWorkout) -> String {
+        Formatters.duration(workout.duration)
+    }
+
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+        NavigationStack {
+            List {
+                ForEach(workouts, id: \.self) { workout in
+                    NavigationLink(value: workout) {
+                        VStack(alignment: .leading) {
+                            Text(workoutTitle(workout))
+                                .font(.headline)
+                            Text(workoutSubtitle(workout))
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                }
+            }
+            .navigationTitle("Workouts")
+            .navigationDestination(for: HKWorkout.self) { workout in
+                WorkoutView(workout: workout, healthManager: healthManager)
+            }
         }
-        .padding()
+        .task {
+            do {
+                try await healthManager.requestAuthorization()
+                let workouts = try await healthManager.getWorkouts()
+                DispatchQueue.main.async {
+                    self.workouts = workouts
+                }
+            } catch {
+                print(error)
+            }
+        }
     }
 }
 
