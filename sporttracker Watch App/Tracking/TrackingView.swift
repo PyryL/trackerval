@@ -80,12 +80,21 @@ struct TrackingView: View {
 
     private struct QuickSegmentingModifier: ViewModifier {
         var action: () -> ()
+        @State private var pressTriggered: Bool = false
         @State private var dragTriggered: Bool = false
 
         func body(content: Content) -> some View {
             content
-                .onTapGesture(perform: action)
-                .gesture(DragGesture(minimumDistance: 0)
+                .gesture(LongPressGesture(minimumDuration: .leastNormalMagnitude, maximumDistance: .greatestFiniteMagnitude)
+                    .onChanged { isPressed in
+                        guard isPressed, !pressTriggered else { return }
+                        pressTriggered = true
+                        action()
+                    }
+                    .onEnded { _ in
+                        pressTriggered = false
+                    })
+                .simultaneousGesture(DragGesture(minimumDistance: 0)
                     .onChanged { _ in
                         guard !dragTriggered else { return }
                         dragTriggered = true
