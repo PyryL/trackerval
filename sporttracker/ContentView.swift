@@ -21,13 +21,22 @@ struct ContentView: View {
         return formatter.string(from: workout.startDate)
     }
 
+    func workoutSubtitle(_ workout: HKWorkout) -> String {
+        Formatters.duration(workout.duration)
+    }
+
     var body: some View {
         NavigationStack {
             List {
                 ForEach(workouts, id: \.self) { workout in
                     NavigationLink(value: workout) {
-                        Text(workoutTitle(workout))
-                            .font(.headline)
+                        VStack(alignment: .leading) {
+                            Text(workoutTitle(workout))
+                                .font(.headline)
+                            Text(workoutSubtitle(workout))
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                        }
                     }
                 }
             }
