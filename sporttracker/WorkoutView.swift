@@ -129,6 +129,13 @@ struct WorkoutView: View {
                                 segmentEnd: segmentEnd,
                                 workout: workout,
                                 healthManager: healthManager)
+                .chartYAxis {
+                    AxisMarks { value in
+                        AxisValueLabel {
+                            Text(Formatters.speed(value.as(Double.self)!))
+                        }
+                    }
+                }
             }
         }
         .navigationTitle(workout.startDate.formatted(date: .numeric, time: .shortened))
