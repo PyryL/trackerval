@@ -132,11 +132,18 @@ struct WorkoutView: View {
 
             if !locations.isEmpty {
                 Map {
-                    MapPolyline(coordinates: segmentLocations.map {
-                        CLLocationCoordinate2D(latitude: $0.coordinate.latitude,
-                                               longitude: $0.coordinate.longitude)
-                    })
-                    .stroke(Color.red, lineWidth: 4)
+                    MapPolyline(coordinates: segmentLocations.map { $0.coordinate })
+                        .stroke(Color.red, lineWidth: 4)
+
+                    if let inspectorDate, let location = segmentLocations.last(where: { $0.timestamp <= inspectorDate }) {
+                        Annotation("Inspection", coordinate: location.coordinate) {
+                            Circle()
+                                .frame(width: 10, height: 10)
+                                .foregroundStyle(.red)
+                                .overlay(Circle().stroke(Color.white))
+                        }
+                        .annotationTitles(.hidden)
+                    }
                 }
                 .frame(height: 200)
             }
