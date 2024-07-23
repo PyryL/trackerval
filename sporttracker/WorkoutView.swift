@@ -84,7 +84,7 @@ struct WorkoutView: View {
             do {
                 let statistics = try await healthManager.getStatistics(HKQuantityType(.distanceWalkingRunning),
                                                                        startDate: segmentStart,
-                                                                       endDate: segmentEnd,
+                                                                       endDate: inspectorDate ?? segmentEnd,
                                                                        workout: workout)
                 let distance = statistics.sumQuantity()!.doubleValue(for: .meter())
                 DispatchQueue.main.async {
@@ -94,6 +94,12 @@ struct WorkoutView: View {
                 print("failed to load distance", error)
             }
         }
+    }
+
+    var durationLabel: String {
+        let durationEndDate = inspectorDate ?? segmentEnd
+        let duration = durationEndDate.timeIntervalSince(segmentStart)
+        return Formatters.duration(duration)
     }
 
     var strideLengthFormatter: MeasurementFormatter {
@@ -137,13 +143,14 @@ struct WorkoutView: View {
 
             HStack {
                 Image(systemName: "stopwatch")
-                Text(Formatters.duration(segmentEnd.timeIntervalSince(segmentStart)))
+                Text(durationLabel)
 
                 Spacer()
 
                 Text(distance != nil ? Formatters.distance(distance!) + " km" : "...")
                     .onAppear(perform: updateDistance)
                     .onChange(of: segment) { updateDistance() }
+                    .onChange(of: inspectorDate) { updateDistance() }
                 Image(systemName: "ruler")
             }
 
