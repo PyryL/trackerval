@@ -20,6 +20,7 @@ struct WorkoutPlotView: View {
     var workout: HKWorkout
     var healthManager: HealthManager
     @State fileprivate var data: [PlotDataItem] = []
+    @State fileprivate var inspectorValues: (PlotDataItem, PlotDataItem)? = nil
     @State var average: Double? = nil
     @State var minimum: Double? = nil
     @State var maximum: Double? = nil
@@ -77,13 +78,14 @@ struct WorkoutPlotView: View {
         }
     }
 
-    fileprivate var inspectorValues: (PlotDataItem, PlotDataItem)? {
+    fileprivate func updateInspectorValues() {
         guard let inspectorDate,
               !segmentData.isEmpty,
               segmentData.first!.date < inspectorDate,
               segmentData.last!.date > inspectorDate else {
 
-            return nil
+            inspectorValues = nil
+            return
         }
 
         let maxIndex = segmentData.index(before: segmentData.endIndex)
@@ -95,7 +97,8 @@ struct WorkoutPlotView: View {
             let mid = (left + right) / 2
 
             if segmentData[mid].date == inspectorDate {
-                return (segmentData[mid], segmentData[mid])
+                inspectorValues = (segmentData[mid], segmentData[mid])
+                return
             } else if segmentData[mid].date < inspectorDate {
                 left = min(mid+1, maxIndex)
             } else {
@@ -103,7 +106,7 @@ struct WorkoutPlotView: View {
             }
         }
 
-        return (segmentData[right], segmentData[left])
+        inspectorValues = (segmentData[right], segmentData[left])
     }
 
     var yScale: ClosedRange<Double> {
@@ -173,6 +176,7 @@ struct WorkoutPlotView: View {
         .onAppear(perform: loadStatistics)
         .onChange(of: segmentStart, loadStatistics)
         .onChange(of: segmentEnd, loadStatistics)
+        .onChange(of: inspectorDate, updateInspectorValues)
     }
 }
 
