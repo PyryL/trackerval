@@ -106,6 +106,36 @@ class HealthManager {
         }
     }
 
+    func getDistance(startDate: Date, endDate: Date, workout: HKWorkout) async throws -> Double {
+        guard let healthStore else {
+            throw HealthError.healthNotAvailable
+        }
+
+        let distanceType = HKQuantityType(.distanceWalkingRunning)
+        let predicate = HKQuery.predicateForSamples(withStart: startDate, end: endDate)
+
+        return try await withCheckedThrowingContinuation { continuation in
+
+            let query = HKStatisticsQuery(quantityType: distanceType, quantitySamplePredicate: predicate, options: .cumulativeSum) { _, statistics, error in
+
+                if let error {
+                    continuation.resume(throwing: error)
+                    return
+                }
+
+                guard let statistics,
+                      let meters = statistics.sumQuantity()?.doubleValue(for: .meter()) else {
+
+                    fatalError()
+                }
+
+                continuation.resume(returning: meters)
+            }
+
+            healthStore.execute(query)
+        }
+    }
+
     func getRoute(workout: HKWorkout) async throws -> [CLLocation] {
         guard let healthStore else {
             throw HealthError.healthNotAvailable

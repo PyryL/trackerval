@@ -77,11 +77,20 @@ struct WorkoutView: View {
     }
 
     func updateDistance() {
-        let distanceType = HKQuantityType(.distanceWalkingRunning)
-        guard let statistics = workout.allStatistics[distanceType] else {
-            return
+        distance = nil
+
+        Task {
+            do {
+                let distance = try await healthManager.getDistance(startDate: segmentStart,
+                                                                   endDate: segmentEnd,
+                                                                   workout: workout)
+                DispatchQueue.main.async {
+                    self.distance = distance
+                }
+            } catch {
+                print("failed to load distance", error)
+            }
         }
-        distance = statistics.sumQuantity()?.doubleValue(for: .meter())
     }
 
     var body: some View {
@@ -99,7 +108,8 @@ struct WorkoutView: View {
             if !locations.isEmpty {
                 Map {
                     MapPolyline(coordinates: segmentLocations.map {
-                        CLLocationCoordinate2D(latitude: $0.coordinate.latitude, longitude: $0.coordinate.longitude)
+                        CLLocationCoordinate2D(latitude: $0.coordinate.latitude,
+                                               longitude: $0.coordinate.longitude)
                     })
                     .stroke(Color.red, lineWidth: 4)
                 }
@@ -114,6 +124,7 @@ struct WorkoutView: View {
 
                 Text(distance != nil ? Formatters.distance(distance!) + " km" : "...")
                     .onAppear(perform: updateDistance)
+                    .onChange(of: segment) { updateDistance() }
                 Image(systemName: "ruler")
             }
 
@@ -135,6 +146,13 @@ struct WorkoutView: View {
                     AxisValueLabel {
                         Text(Formatters.speed(value.as(Double.self)!))
                     }
+                }
+            }
+        }
+        .chartXAxis {
+            AxisMarks { value in
+                AxisValueLabel {
+                    Text(Formatters.duration(value.as(Date.self)!.timeIntervalSince(segmentStart)))
                 }
             }
         }
