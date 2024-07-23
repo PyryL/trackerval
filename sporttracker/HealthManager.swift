@@ -106,30 +106,38 @@ class HealthManager {
         }
     }
 
-    func getDistance(startDate: Date, endDate: Date, workout: HKWorkout) async throws -> Double {
+    func getStatistics(_ sampleType: HKQuantityType, startDate: Date, endDate: Date, workout: HKWorkout) async throws -> HKStatistics {
         guard let healthStore else {
             throw HealthError.healthNotAvailable
         }
 
-        let distanceType = HKQuantityType(.distanceWalkingRunning)
         let predicate = HKQuery.predicateForSamples(withStart: startDate, end: endDate)
+        let options: HKStatisticsOptions
+
+        switch sampleType.aggregationStyle {
+        case .cumulative:
+            options = .cumulativeSum
+        case .discreteArithmetic, .discrete, .discreteTemporallyWeighted:
+            options = [.discreteAverage, .discreteMin, .discreteMax]
+        default:
+            print("Unexpected sample type in HealthManager.getStatistics", sampleType, sampleType.aggregationStyle.rawValue)
+            options = []
+        }
 
         return try await withCheckedThrowingContinuation { continuation in
 
-            let query = HKStatisticsQuery(quantityType: distanceType, quantitySamplePredicate: predicate, options: .cumulativeSum) { _, statistics, error in
+            let query = HKStatisticsQuery(quantityType: sampleType, quantitySamplePredicate: predicate, options: options) { _, statistics, error in
 
                 if let error {
                     continuation.resume(throwing: error)
                     return
                 }
 
-                guard let statistics,
-                      let meters = statistics.sumQuantity()?.doubleValue(for: .meter()) else {
-
+                guard let statistics else {
                     fatalError()
                 }
 
-                continuation.resume(returning: meters)
+                continuation.resume(returning: statistics)
             }
 
             healthStore.execute(query)

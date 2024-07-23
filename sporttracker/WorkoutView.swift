@@ -81,9 +81,11 @@ struct WorkoutView: View {
 
         Task {
             do {
-                let distance = try await healthManager.getDistance(startDate: segmentStart,
-                                                                   endDate: segmentEnd,
-                                                                   workout: workout)
+                let statistics = try await healthManager.getStatistics(HKQuantityType(.distanceWalkingRunning),
+                                                                       startDate: segmentStart,
+                                                                       endDate: segmentEnd,
+                                                                       workout: workout)
+                let distance = statistics.sumQuantity()!.doubleValue(for: .meter())
                 DispatchQueue.main.async {
                     self.distance = distance
                 }
@@ -129,25 +131,20 @@ struct WorkoutView: View {
             }
 
             WorkoutPlotView(sampleType: HKQuantityType(.heartRate),
-                            value: { $0.doubleValue(for: .countPerMinute()) },
+                            valueGetter: { $0.doubleValue(for: .countPerMinute()) },
+                            formatter: { Formatters.heartRate($0) },
                             segmentStart: segmentStart,
                             segmentEnd: segmentEnd,
                             workout: workout,
                             healthManager: healthManager)
 
             WorkoutPlotView(sampleType: HKQuantityType(.runningSpeed),
-                            value: { $0.doubleValue(for: .kilometerPerSecond()).inverse() },
+                            valueGetter: { $0.doubleValue(for: .kilometerPerSecond()).inverse() },
+                            formatter: { Formatters.speed($0) },
                             segmentStart: segmentStart,
                             segmentEnd: segmentEnd,
                             workout: workout,
                             healthManager: healthManager)
-            .chartYAxis {
-                AxisMarks { value in
-                    AxisValueLabel {
-                        Text(Formatters.speed(value.as(Double.self)!))
-                    }
-                }
-            }
         }
         .chartXAxis {
             AxisMarks { value in
