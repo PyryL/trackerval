@@ -161,11 +161,11 @@ struct DetailedParametersView: View {
             ToolbarItem(placement: .topBarLeading) {
                 Picker(selection: $segment) {
                     Text("Total").tag(nil as Int?)
-                    ForEach(0..<trackingManager.segmentDates.count, id: \.self) { index in
-                        Text("Segment \(index+1)").tag(index)
-                    }
                     if !trackingManager.segmentDates.isEmpty {
-                        Text("Current").tag(trackingManager.segmentDates.count)
+                        Text("Current segment").tag(trackingManager.segmentDates.count)
+                    }
+                    ForEach((0..<trackingManager.segmentDates.count).reversed(), id: \.self) { index in
+                        Text("Segment \(index+1)").tag(index)
                     }
                 } label: {
                     EmptyView()
