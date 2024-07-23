@@ -76,6 +76,16 @@ struct WorkoutPlotView: View {
         }
     }
 
+    var yScale: ClosedRange<Double> {
+        guard let minValue = segmentData.map({ $0.value }).min(),
+              let maxValue = segmentData.map({ $0.value }).max() else {
+
+            return 0.0 ... 1.0
+        }
+
+        return (0.95 * minValue) ... (1.05 * maxValue)
+    }
+
     var keyValuesLabel: String {
         let averageString = average != nil ? formatter(average!) : "..."
         let minimumString = minimum != nil ? formatter(minimum!) : "..."
@@ -99,7 +109,7 @@ struct WorkoutPlotView: View {
                              y: .value("Value", $0.value))
                 }
                 .chartXScale(domain: segmentStart ... segmentEnd)
-                .chartYScale(domain: data.map { $0.value }.min()!*0.9 ... data.map { $0.value }.max()!*1.1)
+                .chartYScale(domain: yScale)
                 .chartYAxis {
                     AxisMarks { value in
                         AxisValueLabel {
