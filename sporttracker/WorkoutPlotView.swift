@@ -13,6 +13,7 @@ struct WorkoutPlotView: View {
     var sampleType: HKQuantityType
     var valueGetter: (HKQuantity) -> (Double)
     var formatter: (Double) -> (String)
+    var systemImage: String
     var segmentStart: Date
     var segmentEnd: Date
     var workout: HKWorkout
@@ -87,10 +88,11 @@ struct WorkoutPlotView: View {
         VStack(spacing: 0) {
             if !segmentData.isEmpty {
                 HStack {
+                    Image(systemName: systemImage)
                     Text(keyValuesLabel)
-                        .font(.caption)
                     Spacer()
                 }
+                .font(.caption)
 
                 Chart(segmentData) {
                     LineMark(x: .value("Time", $0.date),
@@ -103,6 +105,7 @@ struct WorkoutPlotView: View {
                         AxisValueLabel {
                             Text(formatter(value.as(Double.self)!))
                         }
+                        AxisGridLine()
                     }
                 }
             } else {

@@ -95,6 +95,22 @@ struct WorkoutView: View {
         }
     }
 
+    var strideLengthFormatter: MeasurementFormatter {
+        let formatter = MeasurementFormatter()
+        formatter.unitStyle = .short
+        formatter.unitOptions = .providedUnit
+        formatter.numberFormatter.maximumFractionDigits = 0
+        return formatter
+    }
+
+    var groundContactTimeFormatter: MeasurementFormatter {
+        let formatter = MeasurementFormatter()
+        formatter.unitStyle = .short
+        formatter.unitOptions = .providedUnit
+        formatter.numberFormatter.maximumFractionDigits = 0
+        return formatter
+    }
+
     var body: some View {
         Form {
             if !segmentDates.isEmpty {
@@ -133,6 +149,7 @@ struct WorkoutView: View {
             WorkoutPlotView(sampleType: HKQuantityType(.heartRate),
                             valueGetter: { $0.doubleValue(for: .countPerMinute()) },
                             formatter: { Formatters.heartRate($0) },
+                            systemImage: "heart",
                             segmentStart: segmentStart,
                             segmentEnd: segmentEnd,
                             workout: workout,
@@ -141,6 +158,25 @@ struct WorkoutView: View {
             WorkoutPlotView(sampleType: HKQuantityType(.runningSpeed),
                             valueGetter: { $0.doubleValue(for: .kilometerPerSecond()).inverse() },
                             formatter: { Formatters.speed($0) },
+                            systemImage: "speedometer",
+                            segmentStart: segmentStart,
+                            segmentEnd: segmentEnd,
+                            workout: workout,
+                            healthManager: healthManager)
+
+            WorkoutPlotView(sampleType: HKQuantityType(.runningStrideLength),
+                            valueGetter: { $0.doubleValue(for: .meterUnit(with: .centi)) },
+                            formatter: { strideLengthFormatter.string(from: Measurement(value: $0, unit: UnitLength.centimeters)) },
+                            systemImage: "figure.run",
+                            segmentStart: segmentStart,
+                            segmentEnd: segmentEnd,
+                            workout: workout,
+                            healthManager: healthManager)
+
+            WorkoutPlotView(sampleType: HKQuantityType(.runningGroundContactTime),
+                            valueGetter: { $0.doubleValue(for: .secondUnit(with: .milli)) },
+                            formatter: { groundContactTimeFormatter.string(from: Measurement(value: $0, unit: UnitDuration.milliseconds)) },
+                            systemImage: "hourglass",
                             segmentStart: segmentStart,
                             segmentEnd: segmentEnd,
                             workout: workout,
