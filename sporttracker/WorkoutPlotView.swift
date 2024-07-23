@@ -26,10 +26,10 @@ struct WorkoutPlotView: View {
     @State var maximum: Double? = nil
 
     fileprivate var segmentData: ArraySlice<PlotDataItem> {
-        guard let startIndex = data.firstIndex(where: { $0.date >= segmentStart }),
-              let endIndex = data.lastIndex(where: { $0.date <= segmentEnd }),
-              startIndex < endIndex else {
+        let startIndex = data.lastIndex(where: { $0.date <= segmentStart }) ?? data.startIndex
+        let endIndex = data.firstIndex(where: { $0.date >= segmentEnd }) ?? data.index(before: data.endIndex)
 
+        guard startIndex <= endIndex else {
             return []
         }
 
@@ -165,6 +165,7 @@ struct WorkoutPlotView: View {
                         AxisGridLine()
                     }
                 }
+                .clipped()
                 .modifier(PlotGestureModifier(inspectorDate: $inspectorDate))
             } else {
                 Text("No data")

@@ -111,8 +111,8 @@ class HealthManager {
             throw HealthError.healthNotAvailable
         }
 
+        let datePredicate = HKQuery.predicateForSamples(withStart: startDate, end: endDate, options: [.strictStartDate, .strictEndDate])
         let workoutPredicate = HKQuery.predicateForObjects(from: workout)
-        let datePredicate = HKQuery.predicateForSamples(withStart: startDate, end: endDate)
         let predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [workoutPredicate, datePredicate])
 
         let options: HKStatisticsOptions
