@@ -14,6 +14,7 @@ struct WorkoutPlotView: View {
     var valueGetter: (HKQuantity) -> (Double)
     var formatter: (Double) -> (String)
     var systemImage: String
+    @Binding var inspectorDate: Date?
     var segmentStart: Date
     var segmentEnd: Date
     var workout: HKWorkout
@@ -76,6 +77,35 @@ struct WorkoutPlotView: View {
         }
     }
 
+    fileprivate var inspectorValues: (PlotDataItem, PlotDataItem)? {
+        guard let inspectorDate,
+              !segmentData.isEmpty,
+              segmentData.first!.date < inspectorDate,
+              segmentData.last!.date > inspectorDate else {
+
+            return nil
+        }
+
+        let maxIndex = segmentData.index(before: segmentData.endIndex)
+
+        var left = segmentData.startIndex
+        var right = maxIndex
+
+        while left < right {
+            let mid = (left + right) / 2
+
+            if segmentData[mid].date == inspectorDate {
+                return (segmentData[mid], segmentData[mid])
+            } else if segmentData[mid].date < inspectorDate {
+                left = min(mid+1, maxIndex)
+            } else {
+                right = max(mid-1, segmentData.startIndex)
+            }
+        }
+
+        return (segmentData[right], segmentData[left])
+    }
+
     var yScale: ClosedRange<Double> {
         guard let minValue = segmentData.map({ $0.value }).min(),
               let maxValue = segmentData.map({ $0.value }).max() else {
@@ -87,6 +117,15 @@ struct WorkoutPlotView: View {
     }
 
     var keyValuesLabel: String {
+        if let inspectorValues {
+            let startString = formatter(inspectorValues.0.value)
+            let endString = formatter(inspectorValues.1.value)
+            if startString == endString {
+                return startString
+            }
+            return "\(startString)-\(endString)"
+        }
+
         let averageString = average != nil ? formatter(average!) : "..."
         let minimumString = minimum != nil ? formatter(minimum!) : "..."
         let maximumString = maximum != nil ? formatter(maximum!) : "..."
@@ -107,6 +146,11 @@ struct WorkoutPlotView: View {
                 Chart(segmentData) {
                     LineMark(x: .value("Time", $0.date),
                              y: .value("Value", $0.value))
+
+                    if let inspectorValues {
+                        PointMark(x: .value("Selection time", inspectorValues.0.date),
+                                  y: .value("Selection value", inspectorValues.0.value))
+                    }
                 }
                 .chartXScale(domain: segmentStart ... segmentEnd)
                 .chartYScale(domain: yScale)
@@ -118,6 +162,7 @@ struct WorkoutPlotView: View {
                         AxisGridLine()
                     }
                 }
+                .modifier(PlotGestureModifier(inspectorDate: $inspectorDate))
             } else {
                 Text("No data")
             }
@@ -128,6 +173,25 @@ struct WorkoutPlotView: View {
         .onAppear(perform: loadStatistics)
         .onChange(of: segmentStart, loadStatistics)
         .onChange(of: segmentEnd, loadStatistics)
+    }
+}
+
+fileprivate struct PlotGestureModifier: ViewModifier {
+    @Binding var inspectorDate: Date?
+
+    func body(content: Content) -> some View {
+        content.chartGesture { chart in
+            DragGesture(minimumDistance: 30.0)
+                .onChanged { gesture in
+                    guard let chartValues = chart.value(at: gesture.location, as: (Date, Double).self) else {
+                        return
+                    }
+                    inspectorDate = chartValues.0
+                }
+                .onEnded { _ in
+                    inspectorDate = nil
+                }
+        }
     }
 }
 

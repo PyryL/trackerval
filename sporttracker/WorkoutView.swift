@@ -18,6 +18,7 @@ struct WorkoutView: View {
     @State var segment: Int? = nil
     @State var locations: [CLLocation] = []
     @State var distance: Double? = nil
+    @State var inspectorDate: Date? = nil
 
     var segmentStart: Date {
         guard let segment, segment > 0 else {
@@ -150,6 +151,7 @@ struct WorkoutView: View {
                             valueGetter: { $0.doubleValue(for: .countPerMinute()) },
                             formatter: { Formatters.heartRate($0) },
                             systemImage: "heart",
+                            inspectorDate: $inspectorDate,
                             segmentStart: segmentStart,
                             segmentEnd: segmentEnd,
                             workout: workout,
@@ -159,6 +161,7 @@ struct WorkoutView: View {
                             valueGetter: { $0.doubleValue(for: .kilometerPerSecond()).inverse() },
                             formatter: { Formatters.speed($0) },
                             systemImage: "speedometer",
+                            inspectorDate: $inspectorDate,
                             segmentStart: segmentStart,
                             segmentEnd: segmentEnd,
                             workout: workout,
@@ -168,6 +171,7 @@ struct WorkoutView: View {
                             valueGetter: { $0.doubleValue(for: .meterUnit(with: .centi)) },
                             formatter: { strideLengthFormatter.string(from: Measurement(value: $0, unit: UnitLength.centimeters)) },
                             systemImage: "figure.run",
+                            inspectorDate: $inspectorDate,
                             segmentStart: segmentStart,
                             segmentEnd: segmentEnd,
                             workout: workout,
@@ -177,6 +181,7 @@ struct WorkoutView: View {
                             valueGetter: { $0.doubleValue(for: .secondUnit(with: .milli)) },
                             formatter: { groundContactTimeFormatter.string(from: Measurement(value: $0, unit: UnitDuration.milliseconds)) },
                             systemImage: "hourglass",
+                            inspectorDate: $inspectorDate,
                             segmentStart: segmentStart,
                             segmentEnd: segmentEnd,
                             workout: workout,
