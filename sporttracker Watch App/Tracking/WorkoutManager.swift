@@ -198,7 +198,8 @@ class WorkoutManager: NSObject {
         }
 
         let sampleType = HKQuantityType(parameter.quantityTypeIdentifier)
-        let predicate = HKQuery.predicateForSamples(withStart: startDate, end: endDate)
+        let predicateOptions: HKQueryOptions = [.strictStartDate, .strictEndDate]
+        let predicate = HKQuery.predicateForSamples(withStart: startDate, end: endDate, options: predicateOptions)
 
         return await withUnsafeContinuation { continuation in
             let query = HKStatisticsQuery(quantityType: sampleType, quantitySamplePredicate: predicate, options: parameter.queryOptions) { _, statistics, error in
