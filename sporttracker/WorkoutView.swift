@@ -102,7 +102,7 @@ struct WorkoutView: View {
         return Formatters.duration(duration)
     }
 
-    var strideLengthFormatter: MeasurementFormatter {
+    var lengthFormatter: MeasurementFormatter {
         let formatter = MeasurementFormatter()
         formatter.unitStyle = .short
         formatter.unitOptions = .providedUnit
@@ -158,7 +158,7 @@ struct WorkoutView: View {
                     .onAppear(perform: updateDistance)
                     .onChange(of: segment) { updateDistance() }
                     .onChange(of: inspectorDate) { updateDistance() }
-                Image(systemName: "ruler")
+                Image(systemName: "point.bottomleft.forward.to.point.topright.scurvepath")
             }
 
             WorkoutPlotView(sampleType: HKQuantityType(.heartRate),
@@ -183,8 +183,8 @@ struct WorkoutView: View {
 
             WorkoutPlotView(sampleType: HKQuantityType(.runningStrideLength),
                             valueGetter: { $0.doubleValue(for: .meterUnit(with: .centi)) },
-                            formatter: { strideLengthFormatter.string(from: Measurement(value: $0, unit: UnitLength.centimeters)) },
-                            systemImage: "figure.run",
+                            formatter: { lengthFormatter.string(from: Measurement(value: $0, unit: UnitLength.centimeters)) },
+                            systemImage: "ruler",
                             inspectorDate: $inspectorDate,
                             segmentStart: segmentStart,
                             segmentEnd: segmentEnd,
@@ -195,6 +195,16 @@ struct WorkoutView: View {
                             valueGetter: { $0.doubleValue(for: .secondUnit(with: .milli)) },
                             formatter: { groundContactTimeFormatter.string(from: Measurement(value: $0, unit: UnitDuration.milliseconds)) },
                             systemImage: "hourglass",
+                            inspectorDate: $inspectorDate,
+                            segmentStart: segmentStart,
+                            segmentEnd: segmentEnd,
+                            workout: workout,
+                            healthManager: healthManager)
+
+            WorkoutPlotView(sampleType: HKQuantityType(.runningVerticalOscillation),
+                            valueGetter: { $0.doubleValue(for: .meterUnit(with: .centi)) },
+                            formatter: { lengthFormatter.string(from: Measurement(value: $0, unit: UnitLength.centimeters)) },
+                            systemImage: "arrow.up.arrow.down",
                             inspectorDate: $inspectorDate,
                             segmentStart: segmentStart,
                             segmentEnd: segmentEnd,

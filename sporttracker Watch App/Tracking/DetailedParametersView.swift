@@ -118,7 +118,7 @@ struct DetailedParametersView: View {
             TrackingNumericInfoLabel(
                 value: distance != nil ? Formatters.distance(distance!) : "...",
                 unit: "km",
-                systemImage: "ruler")
+                systemImage: "point.bottomleft.forward.to.point.topright.scurvepath")
             .onAppear(perform: updateDistance)
             .onChange(of: segment) { updateDistance() }
             .onChange(of: trackingManager.distance) { _, newValue in
