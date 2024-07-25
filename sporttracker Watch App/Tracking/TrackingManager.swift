@@ -12,6 +12,7 @@ class TrackingManager: ObservableObject {
     init(endTracking: @escaping () -> ()) {
         self.endTracking = endTracking
         workoutManager.delegate = self
+        AudioPlayer.setAudioSession()
     }
 
     private let endTracking: () -> ()
@@ -35,7 +36,8 @@ class TrackingManager: ObservableObject {
 
     let workoutManager = WorkoutManager()
 
-    let audioPlayer = AudioPlayer()
+    let newSegmentAudio = AudioPlayer(sound: .newSegment)
+    let pacerAudio = AudioPlayer(sound: .pacer)
 
     func startWorkout() {
         guard case .notStarted = status, startDate == nil else {
@@ -102,6 +104,7 @@ class TrackingManager: ObservableObject {
                         self.pacerTimer?.invalidate()
                         self.pacerTimer = Timer.scheduledTimer(withTimeInterval: pacerInterval, repeats: true) { _ in
                             WKInterfaceDevice.current().play(.notification)
+                            self.pacerAudio.play()
                         }
                     }
                 } else if self.intervalStatus == .ongoing {
@@ -111,8 +114,8 @@ class TrackingManager: ObservableObject {
                 }
             }
 
-            WKInterfaceDevice.current().play(.retry) // or .notification
-            audioPlayer.playNewSegment()
+            WKInterfaceDevice.current().play(.retry)
+            newSegmentAudio.play()
         }
     }
 
@@ -137,6 +140,7 @@ class TrackingManager: ObservableObject {
                 self.endTracking()
             }
 
+            AudioPlayer.unsetAudioSession()
             WKInterfaceDevice.current().play(.failure)
         }
     }

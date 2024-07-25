@@ -8,22 +8,19 @@
 import AVFoundation
 
 class AudioPlayer {
-    init() {
+    init(sound: Sound) {
         do {
-            let url = Bundle.main.url(forResource: "new-segment", withExtension: "wav")!
-            newSegmentPlayer = try AVAudioPlayer(contentsOf: url)
+            newSegmentPlayer = try AVAudioPlayer(contentsOf: sound.url)
             newSegmentPlayer?.prepareToPlay()
         } catch {
             print("new segment player failed", error)
             newSegmentPlayer = nil
         }
-
-        setAudioSession()
     }
 
     private let newSegmentPlayer: AVAudioPlayer?
 
-    private func setAudioSession() {
+    static func setAudioSession() {
         do {
             var options: AVAudioSession.CategoryOptions = .duckOthers
             if #available(watchOS 11.0, *) {
@@ -36,11 +33,32 @@ class AudioPlayer {
         }
     }
 
-    func playNewSegment() {
+    static func unsetAudioSession() {
+        do {
+            try AVAudioSession.sharedInstance().setActive(false)
+        } catch {
+            print("audio session unset failed", error)
+        }
+    }
+
+    func play() {
         guard let player = newSegmentPlayer, !player.isPlaying else {
             return
         }
 
         player.play()
+    }
+
+    enum Sound {
+        case newSegment, pacer
+
+        var url: URL {
+            switch self {
+            case .newSegment:
+                Bundle.main.url(forResource: "new-segment", withExtension: "wav")!
+            case .pacer:
+                Bundle.main.url(forResource: "pacer", withExtension: "wav")!
+            }
+        }
     }
 }
