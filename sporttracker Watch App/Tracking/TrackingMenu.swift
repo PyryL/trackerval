@@ -12,6 +12,13 @@ struct TrackingMenu: View {
     var closeMenu: () -> ()
     @State var showEndWorkoutAlert: Bool = false
 
+    var isStatusEnding: Bool {
+        if case .ending = trackingManager.status {
+            return true
+        }
+        return false
+    }
+
     var body: some View {
         NavigationStack {
             List {
@@ -33,7 +40,7 @@ struct TrackingMenu: View {
                         Text("End workout")
                     } icon: {
                         Group {
-                            if case .ending = trackingManager.status {
+                            if isStatusEnding {
                                 ProgressView()
                                     .progressViewStyle(.circular)
                             } else {
@@ -42,6 +49,7 @@ struct TrackingMenu: View {
                         }
                     }
                 }
+                .disabled(isStatusEnding)
                 .alert("End workout?", isPresented: $showEndWorkoutAlert) {
                     Button("Cancel", role: .cancel) { }
                     Button("End", role: .destructive) {
@@ -76,6 +84,9 @@ fileprivate struct IntervalPreparationView: View {
             }
 
             Button {
+                guard case .running = trackingManager.status else {
+                    return
+                }
                 trackingManager.intervalStatus = .preparedForInterval
                 closeMenu()
             } label: {
@@ -93,6 +104,7 @@ fileprivate struct IntervalPreparationView: View {
                     .lineLimit(1)
                     .allowsTightening(true)
                     .minimumScaleFactor(0.1)
+                    .padding(.trailing)
             }
             HStack(spacing: 1) {
                 KeyboardButton(digit: "1", pacerInputDigits: $pacerInputDigits)
