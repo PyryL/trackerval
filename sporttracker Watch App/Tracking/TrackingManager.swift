@@ -12,6 +12,7 @@ class TrackingManager: ObservableObject {
     init(endTracking: @escaping () -> ()) {
         self.endTracking = endTracking
         workoutManager.delegate = self
+        motionStartManager.motionStartCallback = motionStartTriggered
         AudioPlayer.setAudioSession()
     }
 
@@ -32,6 +33,9 @@ class TrackingManager: ObservableObject {
 
     @Published var pacerInterval: Double? = nil
     private var pacerTimer: Timer? = nil
+
+    @Published var motionStartEnabled: Bool = false
+    let motionStartManager = MotionStartManager()
 
 
     let workoutManager = WorkoutManager()
@@ -98,7 +102,12 @@ class TrackingManager: ObservableObject {
                 self.segmentDates.append(segmentEnd)
                 self.isAddingSegment = false
 
-                if self.intervalStatus == .preparedForInterval {
+                if self.intervalStatus == .preparedForInterval, self.motionStartEnabled {
+                    self.intervalStatus = .waitingForMotion
+                    self.motionStartManager.start()
+                    WKInterfaceDevice.current().play(.retry)
+                    return
+                } else if self.intervalStatus == .preparedForInterval || self.intervalStatus == .waitingForMotion {
                     self.intervalStatus = .ongoing
                     if let pacerInterval = self.pacerInterval {
                         self.pacerTimer?.invalidate()
@@ -151,6 +160,16 @@ class TrackingManager: ObservableObject {
         }
         endTracking()
     }
+
+    private func motionStartTriggered() {
+        motionStartManager.stop()
+
+        guard case .running = status, intervalStatus == .waitingForMotion else {
+            return
+        }
+
+        addSegment()
+    }
 }
 
 extension TrackingManager: WorkoutManagerDelegate {
@@ -176,7 +195,7 @@ extension TrackingManager: WorkoutManagerDelegate {
 }
 
 enum IntervalStatus {
-    case disabled, preparedForInterval, ongoing
+    case disabled, preparedForInterval, waitingForMotion, ongoing
 }
 
 enum TrackingStatus {

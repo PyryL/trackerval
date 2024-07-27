@@ -77,20 +77,26 @@ fileprivate struct IntervalPreparationView: View {
 
     var body: some View {
         List {
-            NavigationLink {
-                pacerSettingView
-            } label: {
-                Label("Pacer: \(pacerIntervalString)", systemImage: "gauge.with.needle")
-            }
-
             Button {
-                guard case .running = trackingManager.status else {
+                guard case .running = trackingManager.status,
+                      trackingManager.intervalStatus == .disabled else {
+
                     return
                 }
                 trackingManager.intervalStatus = .preparedForInterval
                 closeMenu()
             } label: {
                 Label("Activate", systemImage: "flag")
+            }
+
+            NavigationLink {
+                pacerSettingView
+            } label: {
+                Label("Pacer: \(pacerIntervalString)", systemImage: "gauge.with.needle")
+            }
+
+            Toggle(isOn: $trackingManager.motionStartEnabled) {
+                Label("Motion start", systemImage: "gyroscope")
             }
         }
     }

@@ -47,11 +47,14 @@ struct CurrentParametersView: View {
         HStack {
             Spacer()
             Image(systemName: "flag")
-            Text(trackingManager.intervalStatus == .preparedForInterval ? "Prepared for interval" : "Interval")
+            Text(trackingManager.intervalStatus == .preparedForInterval ? "Prepared for interval" :
+                    trackingManager.intervalStatus == .waitingForMotion ? "Waiting for motion" :
+                    "Interval")
             Spacer()
         }
         .font(.footnote)
-        .foregroundStyle(trackingManager.intervalStatus == .preparedForInterval ? .blue : .orange)
+        .foregroundStyle(trackingManager.intervalStatus == .preparedForInterval ? .blue :
+                            trackingManager.intervalStatus == .waitingForMotion ? .green : .orange)
     }
 }
 
