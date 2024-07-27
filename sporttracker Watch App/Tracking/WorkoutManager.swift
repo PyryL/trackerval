@@ -26,6 +26,8 @@ class WorkoutManager: NSObject {
     private var builder: HKLiveWorkoutBuilder? = nil
     private var routeBuilder: HKWorkoutRouteBuilder? = nil
 
+    private var routeHasLocations: Bool = false
+
     public var delegate: WorkoutManagerDelegate? = nil
 
     private var workoutStartCallback: Optional<() -> ()> = nil
@@ -112,6 +114,7 @@ class WorkoutManager: NSObject {
         Task {
             do {
                 try await routeBuilder.insertRouteData(locations)
+                routeHasLocations = true
             } catch {
                 print("failed to insert route", error)
             }
@@ -152,6 +155,7 @@ class WorkoutManager: NSObject {
                 self.session = nil
                 self.builder = nil
                 self.routeBuilder = nil
+                self.routeHasLocations = false
 
                 DispatchQueue.main.async {
                     if let error {
@@ -182,7 +186,9 @@ class WorkoutManager: NSObject {
                 }
 
                 locationManager.stopUpdating()
-                try await routeBuilder?.finishRoute(with: workout, metadata: nil)
+                if routeHasLocations {
+                    try await routeBuilder?.finishRoute(with: workout, metadata: nil)
+                }
             } catch {
                 workoutEndCallback?(error)
                 return
