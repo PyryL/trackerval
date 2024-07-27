@@ -102,11 +102,12 @@ class TrackingManager: ObservableObject {
                 self.segmentDates.append(segmentEnd)
                 self.isAddingSegment = false
 
+                var playAudio: Bool = true
+
                 if self.intervalStatus == .preparedForInterval, self.motionStartEnabled {
                     self.intervalStatus = .waitingForMotion
                     self.motionStartManager.start()
-                    WKInterfaceDevice.current().play(.retry)
-                    return
+                    playAudio = false
                 } else if self.intervalStatus == .preparedForInterval || self.intervalStatus == .waitingForMotion {
                     self.intervalStatus = .ongoing
                     if let pacerInterval = self.pacerInterval {
@@ -121,10 +122,12 @@ class TrackingManager: ObservableObject {
                     self.pacerTimer?.invalidate()
                     self.pacerTimer = nil
                 }
-            }
 
-            WKInterfaceDevice.current().play(.retry)
-            newSegmentAudio.play()
+                WKInterfaceDevice.current().play(.retry)
+                if playAudio {
+                    self.newSegmentAudio.play()
+                }
+            }
         }
     }
 
