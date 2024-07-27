@@ -91,7 +91,7 @@ extension LocationManager: CLLocationManagerDelegate {
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
 
         let accurateLocations = locations.filter {
-            $0.horizontalAccuracy <= 30.0
+            $0.horizontalAccuracy >= 0 && $0.horizontalAccuracy <= 30.0
         }
 
         guard !accurateLocations.isEmpty else {
@@ -99,6 +99,14 @@ extension LocationManager: CLLocationManagerDelegate {
         }
 
         locationUpdateCallback?(accurateLocations)
+    }
+
+    func locationManager(_ manager: CLLocationManager, didFailWithError error: any Error) {
+        print("location manager failed", error, locationUpdateCallback != nil)
+
+        if locationUpdateCallback != nil {
+            manager.startUpdatingLocation()
+        }
     }
 }
 
