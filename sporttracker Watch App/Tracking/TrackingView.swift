@@ -32,15 +32,13 @@ struct TrackingView: View {
     }
 
     private var activeTrackingView: some View {
-        Group {
+        NavigationStack {
             if trackingManager.intervalStatus == .disabled {
-                NavigationStack {
-                    TabView {
-                        currentParametersView
-                        DetailedParametersView(trackingManager: trackingManager)
-                    }
-                    .tabViewStyle(.verticalPage)
+                TabView {
+                    currentParametersView
+                    DetailedParametersView(trackingManager: trackingManager)
                 }
+                .tabViewStyle(.verticalPage)
             } else {
                 currentParametersView
                     .modifier(QuickSegmentingModifier(action: trackingManager.addSegment))

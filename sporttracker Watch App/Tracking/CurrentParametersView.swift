@@ -35,9 +35,11 @@ struct CurrentParametersView: View {
                     intervalModeLabel
                 }
             }
-            ToolbarItem(placement: .topBarTrailing) {
-                Button(action: { showMenu = true }) {
-                    Label("Menu", systemImage: "ellipsis.circle")
+            if trackingManager.intervalStatus == .disabled {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button(action: { showMenu = true }) {
+                        Label("Menu", systemImage: "ellipsis.circle")
+                    }
                 }
             }
         }
