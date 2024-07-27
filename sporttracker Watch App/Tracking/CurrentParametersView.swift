@@ -26,12 +26,15 @@ struct CurrentParametersView: View {
                 }
             ParameterView(value: Formatters.speed(trackingManager.currentSpeed), systemImage: "speedometer")
             ParameterView(value: Formatters.heartRate(trackingManager.currentHeartRate), systemImage: "heart")
-            if trackingManager.intervalStatus != .disabled {
-                intervalModeLabel
-            }
         }
         .background()
+        .navigationBarTitleDisplayMode(.inline)
         .toolbar {
+            if trackingManager.intervalStatus != .disabled {
+                ToolbarItem(placement: .topBarLeading) {
+                    intervalModeLabel
+                }
+            }
             ToolbarItem(placement: .topBarTrailing) {
                 Button(action: { showMenu = true }) {
                     Label("Menu", systemImage: "ellipsis.circle")
@@ -44,17 +47,17 @@ struct CurrentParametersView: View {
     }
 
     private var intervalModeLabel: some View {
-        HStack {
-            Spacer()
-            Image(systemName: "flag")
-            Text(trackingManager.intervalStatus == .preparedForInterval ? "Prepared for interval" :
-                    trackingManager.intervalStatus == .waitingForMotion ? "Waiting for motion" :
-                    "Interval")
-            Spacer()
-        }
-        .font(.footnote)
-        .foregroundStyle(trackingManager.intervalStatus == .preparedForInterval ? .blue :
-                            trackingManager.intervalStatus == .waitingForMotion ? .green : .orange)
+        Label(trackingManager.intervalStatus == .preparedForInterval ? "Prepared" :
+                trackingManager.intervalStatus == .waitingForMotion ? "Motion" : "Interval",
+              systemImage: "flag")
+        .foregroundStyle(.black)
+        .lineLimit(1)
+        .minimumScaleFactor(0.5)
+        .padding(.vertical, 2)
+        .padding(.horizontal)
+        .background(trackingManager.intervalStatus == .preparedForInterval ? .blue :
+                        trackingManager.intervalStatus == .waitingForMotion ? .green : .orange)
+        .clipShape(Capsule())
     }
 }
 
@@ -81,6 +84,7 @@ fileprivate struct ParameterView: View {
 #Preview {
     let trackingManager = TrackingManager(endTracking: { })
     trackingManager.status = .running
+    trackingManager.intervalStatus = .ongoing
     trackingManager.startDate = Date(timeIntervalSinceNow: -758.1733) // 12:38
     trackingManager.segmentDates = [Date(timeIntervalSinceNow: -99.315)] // 1:39
     trackingManager.distance = 1912.156
@@ -88,5 +92,7 @@ fileprivate struct ParameterView: View {
     trackingManager.currentSpeed = 344 // 5:44
     trackingManager.averageHeartRate = 128.419
     trackingManager.currentHeartRate = 135
-    return CurrentParametersView(trackingManager: trackingManager)
+    return NavigationStack {
+        CurrentParametersView(trackingManager: trackingManager)
+    }
 }
