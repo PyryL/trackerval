@@ -41,7 +41,9 @@ struct TrackingView: View {
                 .tabViewStyle(.verticalPage)
             } else {
                 currentParametersView
-                    .modifier(QuickSegmentingModifier(action: trackingManager.addSegment))
+                    .modifier(QuickSegmentingModifier(action: {
+                        trackingManager.addSegment(source: .quickSegmentingTap)
+                    }))
             }
         }
     }

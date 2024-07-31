@@ -77,13 +77,26 @@ class TrackingManager: ObservableObject {
         }
     }
 
-    func addSegment() {
+    func addSegment(source: AddSegmentSource) {
         guard case .running = status,
               !isAddingSegment,
               let segmentStart = segmentDates.last ?? startDate,
               -segmentStart.timeIntervalSinceNow >= 1.0 else {
             return
         }
+
+        // if waiting for motion, only allow calls from motion manager
+        if intervalStatus == .waitingForMotion, source != .motionStart {
+            return
+        }
+
+        if intervalStatus == .preparedForInterval, motionStartEnabled {
+            self.intervalStatus = .waitingForMotion
+            self.motionStartManager.start()
+            WKInterfaceDevice.current().play(.retry)
+            return
+        }
+
         isAddingSegment = true
 
         Task {
@@ -94,7 +107,7 @@ class TrackingManager: ObservableObject {
                 DispatchQueue.main.async {
                     self.isAddingSegment = false
                 }
-                print(error)
+                print("failed to add segment", error)
                 return
             }
 
@@ -102,13 +115,11 @@ class TrackingManager: ObservableObject {
                 self.segmentDates.append(segmentEnd)
                 self.isAddingSegment = false
 
-                var playAudio: Bool = true
+                if self.intervalStatus == .preparedForInterval || self.intervalStatus == .waitingForMotion {
+                    if self.intervalStatus == .preparedForInterval, self.motionStartEnabled {
+                        print("WARNING: new segment added when motion should be started instead")
+                    }
 
-                if self.intervalStatus == .preparedForInterval, self.motionStartEnabled {
-                    self.intervalStatus = .waitingForMotion
-                    self.motionStartManager.start()
-                    playAudio = false
-                } else if self.intervalStatus == .preparedForInterval || self.intervalStatus == .waitingForMotion {
                     self.intervalStatus = .ongoing
                     if let pacerInterval = self.pacerInterval {
                         self.pacerTimer?.invalidate()
@@ -124,9 +135,7 @@ class TrackingManager: ObservableObject {
                 }
 
                 WKInterfaceDevice.current().play(.retry)
-                if playAudio {
-                    self.newSegmentAudio.play()
-                }
+                self.newSegmentAudio.play()
             }
         }
     }
@@ -171,7 +180,11 @@ class TrackingManager: ObservableObject {
             return
         }
 
-        addSegment()
+        addSegment(source: .motionStart)
+    }
+
+    enum AddSegmentSource {
+        case quickSegmentingTap, motionStart, trackingMenuButton
     }
 }
 

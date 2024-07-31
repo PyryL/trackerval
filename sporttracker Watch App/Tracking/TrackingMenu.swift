@@ -29,7 +29,7 @@ struct TrackingMenu: View {
                 }
 
                 Button {
-                    trackingManager.addSegment()
+                    trackingManager.addSegment(source: .trackingMenuButton)
                     closeMenu()
                 } label: {
                     Label("New segment", systemImage: "arrow.triangle.capsulepath")
