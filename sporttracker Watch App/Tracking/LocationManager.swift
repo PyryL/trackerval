@@ -22,7 +22,7 @@ class LocationManager: NSObject {
     private var locationUpdateCallback: LocationUpdateCallback? = nil
 
     func requestAuthorization() async throws {
-        let _: Bool = try await withUnsafeThrowingContinuation { continuation in
+        let _: Bool = try await withCheckedThrowingContinuation { continuation in
             requestAuthorization { isGranted, error in
                 if let error {
                     continuation.resume(throwing: error)

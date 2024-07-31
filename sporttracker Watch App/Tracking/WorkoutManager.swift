@@ -82,7 +82,7 @@ class WorkoutManager: NSObject {
 
         session!.startActivity(with: .now)
 
-        return try await withUnsafeThrowingContinuation { continuation in
+        return try await withCheckedThrowingContinuation { continuation in
             workoutStartCallback = {
                 self.workoutStartCallback = nil
 
@@ -148,7 +148,7 @@ class WorkoutManager: NSObject {
 
         session.end()
 
-        let _: Bool = try await withUnsafeThrowingContinuation { continuation in
+        let _: Bool = try await withCheckedThrowingContinuation { continuation in
             workoutEndCallback = { error in
                 self.workoutEndCallback = nil
 
