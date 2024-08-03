@@ -16,22 +16,33 @@ struct WorkoutView: View {
     var healthManager: HealthManager
     @State var segmentDates: [Date] = []
     @State var segment: Int? = nil
+    @State var segmentCrop: (start: Double, end: Double) = (0.0, 1.0)
     @State var locations: [CLLocation] = []
     @State var distance: Double? = nil
     @State var inspectorDate: Date? = nil
 
-    var segmentStart: Date {
+    var startDate: Date {
         guard let segment, segment > 0 else {
             return workout.startDate
         }
         return segmentDates[segment-1]
     }
 
-    var segmentEnd: Date {
+    var endDate: Date {
         guard let segment, segment < segmentDates.count else {
             return workout.endDate
         }
         return segmentDates[segment]
+    }
+
+    var segmentStart: Date {
+        let duration = endDate.timeIntervalSince(startDate)
+        return startDate.addingTimeInterval(segmentCrop.start * duration)
+    }
+
+    var segmentEnd: Date {
+        let duration = endDate.timeIntervalSince(startDate)
+        return startDate.addingTimeInterval(segmentCrop.end * duration)
     }
 
     var segmentLocations: ArraySlice<CLLocation> {
@@ -130,6 +141,8 @@ struct WorkoutView: View {
                 .pickerStyle(.menu)
             }
 
+            CropSlider(value: $segmentCrop)
+
             if !locations.isEmpty {
                 Map {
                     MapPolyline(coordinates: segmentLocations.map { $0.coordinate })
@@ -157,6 +170,8 @@ struct WorkoutView: View {
                 Text(distance != nil ? Formatters.distance(distance!) + " km" : "...")
                     .onAppear(perform: updateDistance)
                     .onChange(of: segment) { updateDistance() }
+                    .onChange(of: segmentStart) { updateDistance() }
+                    .onChange(of: segmentEnd) { updateDistance() }
                     .onChange(of: inspectorDate) { updateDistance() }
                 Image(systemName: "point.bottomleft.forward.to.point.topright.scurvepath")
             }
@@ -224,6 +239,48 @@ struct WorkoutView: View {
         .task {
             await getLocations()
         }
+    }
+}
+
+struct CropSlider: View {
+    @Binding var value: (start: Double, end: Double)
+    @State private var isDraggingStart: Bool? = nil
+
+    var body: some View {
+        GeometryReader { geo in
+            HStack(spacing: 0) {
+                Spacer()
+                    .frame(width: value.start * geo.size.width, height: 1)
+
+                RoundedRectangle(cornerRadius: 5)
+                    .stroke(Color.secondary, lineWidth: 4)
+                    .frame(width: (value.end - value.start) * geo.size.width, height: 30)
+
+                Spacer()
+                    .frame(width: (1.0 - value.end) * geo.size.width, height: 1)
+            }
+            .gesture(DragGesture(minimumDistance: 30.0)
+                .onChanged { value in
+                    let percentage = min(max(value.location.x / geo.size.width, 0.0), 1.0)
+
+                    if isDraggingStart == nil {
+                        let distanceStart = abs(percentage - self.value.start)
+                        let distanceEnd = abs(percentage - self.value.end)
+                        isDraggingStart = distanceStart < distanceEnd
+                    }
+
+                    if isDraggingStart!, percentage < self.value.end {
+                        self.value.start = percentage
+                    } else if !isDraggingStart!, percentage > self.value.start {
+                        self.value.end = percentage
+                    }
+                }
+                .onEnded { _ in
+                    isDraggingStart = nil
+                })
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical)
     }
 }
 
