@@ -32,7 +32,12 @@ struct TrackingMenu: View {
                     trackingManager.addSegment(source: .trackingMenuButton)
                     closeMenu()
                 } label: {
-                    Label("New segment", systemImage: "arrow.triangle.capsulepath")
+                    Label {
+                        Text("New segment")
+                    } icon: {
+                        Image(systemName: "arrow.triangle.capsulepath")
+                            .scaleEffect(y: -1.0)
+                    }
                 }
 
                 Button(action: { showEndWorkoutAlert = true }) {
