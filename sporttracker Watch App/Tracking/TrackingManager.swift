@@ -102,7 +102,9 @@ class TrackingManager: ObservableObject {
         Task {
             let segmentEnd: Date
             do {
-                segmentEnd = try await self.workoutManager.addSegment(startDate: segmentStart)
+                segmentEnd = try await self.workoutManager.addSegment(
+                    startDate: segmentStart,
+                    wasInterval: self.intervalStatus == .ongoing)
             } catch {
                 DispatchQueue.main.async {
                     self.isAddingSegment = false

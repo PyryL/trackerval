@@ -123,8 +123,9 @@ class WorkoutManager: NSObject {
 
     /// - Parameter startDate: The date when the old segment, that is currently being ended, originally started.
     /// - Parameter endDate: The date when the old segment ends. Defaults to the current date.
+    /// - Parameter wasInterval: Whether the old segment was an interval.
     /// - Returns: The date when the old segment ended and the new one started.
-    func addSegment(startDate: Date, endDate: Date? = nil) async throws -> Date {
+    func addSegment(startDate: Date, endDate: Date? = nil, wasInterval: Bool) async throws -> Date {
         guard let builder else {
             throw WorkoutError.notRunning
         }
@@ -132,7 +133,7 @@ class WorkoutManager: NSObject {
         let endDate: Date = endDate ?? .now
         let event = HKWorkoutEvent(type: .segment,
                                    dateInterval: DateInterval(start: startDate, end: endDate),
-                                   metadata: nil)
+                                   metadata: ["info.pyry.apps.trackerval.isInterval": wasInterval])
 
         try await builder.addWorkoutEvents([event])
 
@@ -176,7 +177,7 @@ class WorkoutManager: NSObject {
         Task {
             do {
                 if let lastSegmentDate = self.workoutEndLastSegmentDate {
-                    let _ = try await addSegment(startDate: lastSegmentDate, endDate: endDate)
+                    let _ = try await addSegment(startDate: lastSegmentDate, endDate: endDate, wasInterval: false)
                 }
                 self.workoutEndLastSegmentDate = nil
 
@@ -222,6 +223,14 @@ class WorkoutManager: NSObject {
 
             healthStore.execute(query)
         }
+    }
+
+    func getSegments() throws -> [HKWorkoutEvent] {
+        guard let builder else {
+            throw WorkoutError.notRunning
+        }
+
+        return builder.workoutEvents.filter { $0.type == .segment }
     }
 
     enum LoadableParameter {
