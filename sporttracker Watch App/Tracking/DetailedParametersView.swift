@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import HealthKit
 
 struct DetailedParametersView: View {
     @ObservedObject var trackingManager: TrackingManager
@@ -43,6 +44,31 @@ struct DetailedParametersView: View {
         }
 
         return segmentEndDate.timeIntervalSince(segmentStartDate)
+    }
+
+    var intervalSegments: [Int] {
+        let segments: [HKWorkoutEvent]
+        do {
+            segments = try trackingManager.workoutManager.getSegments()
+        } catch {
+            print("could not load segments", error)
+            return []
+        }
+
+        if trackingManager.segmentDates.count != segments.count {
+            print("WARNING! count of segment dates does not match builder segments")
+            return []
+        }
+
+        var result: [Int] = []
+
+        for (i, segment) in segments.enumerated() {
+            if segment.metadata?["info.pyry.apps.trackerval.isInterval"] as? Bool == true {
+                result.append(i)
+            }
+        }
+
+        return result
     }
 
     private func updateDistance() {
@@ -160,17 +186,28 @@ struct DetailedParametersView: View {
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
                 Picker(selection: $segment) {
-                    Text("Total").tag(nil as Int?)
+                    Label("Total", systemImage: "sum").tag(nil as Int?)
                     if !trackingManager.segmentDates.isEmpty {
-                        Text("Current segment").tag(trackingManager.segmentDates.count)
+                        Label("Current", systemImage: "play")
+                            .tag(trackingManager.segmentDates.count)
                     }
                     ForEach((0..<trackingManager.segmentDates.count).reversed(), id: \.self) { index in
-                        Text("Segment \(index+1)").tag(index)
+                        segmentLabel(index: index).tag(index)
                     }
                 } label: {
                     EmptyView()
                 }
                 .pickerStyle(.navigationLink)
+            }
+        }
+    }
+
+    private func segmentLabel(index: Int) -> some View {
+        Group {
+            if let intervalIndex = intervalSegments.firstIndex(of: index) {
+                Label("Interval \(intervalIndex+1)", systemImage: "\(index+1).circle")
+            } else {
+                Label("Segment", systemImage: "\(index+1).circle")
             }
         }
     }
