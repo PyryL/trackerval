@@ -36,10 +36,27 @@ struct MenuView: View {
 }
 
 fileprivate struct InfoView: View {
+    private var isDebug: Bool {
+        #if DEBUG
+        return true
+        #else
+        return false
+        #endif
+    }
+
     private var appVersionLabel: String {
         let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String
         let buildNumber = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String
-        return "Version \(version ?? "x.x") (\(buildNumber ?? "x"))"
+
+        var result = "Version "
+        result += version ?? "x.x"
+        result += " (" + (buildNumber ?? "x") + ")"
+
+        if isDebug {
+            result += ", debug"
+        }
+
+        return result
     }
 
     var body: some View {
