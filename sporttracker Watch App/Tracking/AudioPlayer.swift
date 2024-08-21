@@ -10,15 +10,15 @@ import AVFoundation
 class AudioPlayer {
     init(sound: Sound) {
         do {
-            newSegmentPlayer = try AVAudioPlayer(contentsOf: sound.url)
-            newSegmentPlayer?.prepareToPlay()
+            audioPlayer = try AVAudioPlayer(contentsOf: sound.url)
+            audioPlayer?.prepareToPlay()
         } catch {
             print("new segment player failed", error)
-            newSegmentPlayer = nil
+            audioPlayer = nil
         }
     }
 
-    private let newSegmentPlayer: AVAudioPlayer?
+    private let audioPlayer: AVAudioPlayer?
 
     static func setAudioSession() {
         do {
@@ -42,7 +42,7 @@ class AudioPlayer {
     }
 
     func play() {
-        guard let player = newSegmentPlayer, !player.isPlaying else {
+        guard let player = audioPlayer, !player.isPlaying else {
             return
         }
 
