@@ -15,6 +15,7 @@ struct WorkoutView: View {
     var workout: HKWorkout
     var healthManager: HealthManager
     @State var segmentDates: [Date] = []
+    @State var intervalSegments: [Int] = []
     @State var segment: Int? = nil
     @State var segmentCrop: (start: Double, end: Double) = (0.0, 1.0)
     @State var locations: [CLLocation] = []
@@ -78,6 +79,13 @@ struct WorkoutView: View {
         segmentDates = segments.dropLast().map {
             $0.dateInterval.end
         }
+
+        intervalSegments = []
+        for (i, segment) in segments.enumerated() {
+            if segment.metadata?["info.pyry.apps.trackerval.isInterval"] as? Bool == true {
+                intervalSegments.append(i)
+            }
+        }
     }
 
     func getLocations() async {
@@ -135,7 +143,11 @@ struct WorkoutView: View {
                 Picker("Segment", selection: $segment) {
                     Text("Total").tag(nil as Int?)
                     ForEach(0...segmentDates.count, id: \.self) { index in
-                        Text("Segment \(index+1)").tag(index)
+                        if let intervalIndex = intervalSegments.firstIndex(of: index) {
+                            Text("Segment \(index+1) (interval \(intervalIndex+1))").tag(index)
+                        } else {
+                            Text("Segment \(index+1)").tag(index)
+                        }
                     }
                 }
                 .pickerStyle(.menu)
