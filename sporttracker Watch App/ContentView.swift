@@ -8,14 +8,21 @@
 import SwiftUI
 
 struct ContentView: View {
-    @State var isTracking: Bool = false
+    @State var isTracking: TrackingState = .disabled
 
     var body: some View {
-        if isTracking {
-            TrackingView(endTracking: { isTracking = false })
-        } else {
-            MenuView(startTracking: { isTracking = true })
+        switch isTracking {
+        case .disabled:
+            MenuView(startTracking: { isIndoor in
+                isTracking = .enabled(isIndoor: isIndoor)
+            })
+        case .enabled(let isIndoor):
+            TrackingView(isIndoor: isIndoor, endTracking: { isTracking = .disabled })
         }
+    }
+
+    enum TrackingState {
+        case disabled, enabled(isIndoor: Bool)
     }
 }
 

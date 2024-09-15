@@ -9,14 +9,17 @@ import Foundation
 import WatchKit
 
 class TrackingManager: ObservableObject {
-    init(endTracking: @escaping () -> ()) {
+    init(isIndoor: Bool, endTracking: @escaping () -> ()) {
         self.endTracking = endTracking
+        self.isIndoor = isIndoor
         workoutManager.delegate = self
         motionStartManager.motionStartCallback = motionStartTriggered
         AudioPlayer.setAudioSession()
     }
 
     private let endTracking: () -> ()
+
+    private let isIndoor: Bool
 
     @Published var status: TrackingStatus = .notStarted
 
@@ -55,7 +58,7 @@ class TrackingManager: ObservableObject {
 
             do {
                 try await workoutManager.requestAuthorization()
-                startDate = try await workoutManager.startWorkout()
+                startDate = try await workoutManager.startWorkout(isIndoor: isIndoor)
             } catch {
                 DispatchQueue.main.async {
                     self.status = .failed(error)

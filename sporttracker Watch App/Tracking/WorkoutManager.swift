@@ -58,7 +58,7 @@ class WorkoutManager: NSObject {
     }
 
     /// - Returns: The date when the workout started, or `nil` if the workout was already started.
-    func startWorkout() async throws -> Date? {
+    func startWorkout(isIndoor: Bool) async throws -> Date? {
         guard let healthStore else {
             throw WorkoutError.healthDataUnavailable
         }
@@ -68,7 +68,7 @@ class WorkoutManager: NSObject {
 
         let configuration = HKWorkoutConfiguration()
         configuration.activityType = .running
-        configuration.locationType = .outdoor
+        configuration.locationType = isIndoor ? .indoor : .outdoor
 
         session = try HKWorkoutSession(healthStore: healthStore, configuration: configuration)
         session!.delegate = self

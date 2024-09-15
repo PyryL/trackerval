@@ -224,7 +224,7 @@ fileprivate struct IntervalPreparationView: View {
 }
 
 #Preview {
-    let trackingManager = TrackingManager(endTracking: { })
+    let trackingManager = TrackingManager(isIndoor: false, endTracking: { })
     trackingManager.pacerInterval = 12.9122
     return TrackingMenu(trackingManager: trackingManager, closeMenu: { })
 }

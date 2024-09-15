@@ -8,17 +8,23 @@
 import SwiftUI
 
 struct MenuView: View {
-    var startTracking: () -> ()
+    var startTracking: (Bool) -> ()
     @State var showsInfo: Bool = false
+    @State var isIndoor: Bool = false
 
     var body: some View {
         NavigationStack {
             // TODO: implement activity types
-            Button(action: { }) {
-                Label("Outdoor run", systemImage: "figure.run")
+            Button {
+                isIndoor.toggle()
+            } label: {
+                Label(isIndoor ? "Indoor run" : "Outdoor run",
+                      systemImage: isIndoor ? "figure.run.circle" : "figure.run")
             }
 
-            Button(action: startTracking) {
+            Button {
+                startTracking(isIndoor)
+            } label: {
                 Label("Start tracking", systemImage: "play")
             }
             .toolbar {
@@ -70,5 +76,5 @@ fileprivate struct InfoView: View {
 }
 
 #Preview {
-    MenuView(startTracking: { })
+    MenuView(startTracking: { _ in })
 }

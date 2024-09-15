@@ -8,8 +8,8 @@
 import SwiftUI
 
 struct TrackingView: View {
-    init(trackingManager: TrackingManager? = nil, endTracking: @escaping () -> ()) {
-        let trackingManager = trackingManager ?? TrackingManager(endTracking: endTracking)
+    init(trackingManager: TrackingManager? = nil, isIndoor: Bool, endTracking: @escaping () -> ()) {
+        let trackingManager = trackingManager ?? TrackingManager(isIndoor: isIndoor, endTracking: endTracking)
         self._trackingManager = .init(wrappedValue: trackingManager)
         currentParametersView = CurrentParametersView(trackingManager: trackingManager)
     }
@@ -108,7 +108,7 @@ struct TrackingView: View {
 }
 
 #Preview {
-    let trackingManager = TrackingManager(endTracking: { })
+    let trackingManager = TrackingManager(isIndoor: false, endTracking: { })
     trackingManager.status = .running
 //    trackingManager.status = .failed(LocationManager.LocationError.reducedAccuracy)
     trackingManager.startDate = Date(timeIntervalSinceNow: -758.1733) // 12:38
@@ -119,5 +119,5 @@ struct TrackingView: View {
     trackingManager.averageHeartRate = 128.419
     trackingManager.currentHeartRate = 135
 //    trackingManager.intervalStatus = .preparedForInterval
-    return TrackingView(trackingManager: trackingManager, endTracking: { })
+    return TrackingView(trackingManager: trackingManager, isIndoor: false, endTracking: { })
 }

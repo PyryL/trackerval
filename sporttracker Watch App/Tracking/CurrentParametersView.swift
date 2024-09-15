@@ -84,7 +84,7 @@ fileprivate struct ParameterView: View {
 }
 
 #Preview {
-    let trackingManager = TrackingManager(endTracking: { })
+    let trackingManager = TrackingManager(isIndoor: false, endTracking: { })
     trackingManager.status = .running
     trackingManager.intervalStatus = .ongoing
     trackingManager.startDate = Date(timeIntervalSinceNow: -758.1733) // 12:38
