@@ -9,17 +9,17 @@ import CoreMotion
 
 class MotionStartManager {
 
-    private let manager = CMMotionManager()
+    static let manager = CMMotionManager()
 
     var motionStartCallback: Optional<() -> ()> = nil
 
     func start() {
-        manager.accelerometerUpdateInterval = 0.01
-        manager.startAccelerometerUpdates(to: OperationQueue(), withHandler: receivedMotion)
+        MotionStartManager.manager.accelerometerUpdateInterval = 0.01
+        MotionStartManager.manager.startAccelerometerUpdates(to: OperationQueue(), withHandler: receivedMotion)
     }
 
     func stop() {
-        manager.stopAccelerometerUpdates()
+        MotionStartManager.manager.stopAccelerometerUpdates()
     }
 
     private func receivedMotion(data: CMAccelerometerData?, error: Error?) {

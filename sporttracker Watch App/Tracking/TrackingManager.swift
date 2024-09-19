@@ -37,11 +37,12 @@ class TrackingManager: ObservableObject {
     @Published var motionStartEnabled: Bool = false
     let motionStartManager = MotionStartManager()
 
-
     let workoutManager = WorkoutManager()
 
     let newSegmentAudio = AudioPlayer(sound: .newSegment)
     let pacerAudio = AudioPlayer(sound: .pacer)
+
+    let motionSurveyManager = MotionSurveyManager()
 
     func startWorkout() {
         guard case .notStarted = status, startDate == nil else {
@@ -98,6 +99,12 @@ class TrackingManager: ObservableObject {
         }
 
         isAddingSegment = true
+
+        if intervalStatus == .ongoing {
+            Timer.scheduledTimer(withTimeInterval: 5.0, repeats: false) { _ in
+                self.motionSurveyManager.stopRecording()
+            }
+        }
 
         Task {
             let segmentEnd: Date

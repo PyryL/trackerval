@@ -89,6 +89,7 @@ fileprivate struct IntervalPreparationView: View {
                     return
                 }
                 trackingManager.intervalStatus = .preparedForInterval
+                trackingManager.motionSurveyManager.startRecording()
                 closeMenu()
             } label: {
                 Label("Activate", systemImage: "flag")
