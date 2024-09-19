@@ -31,6 +31,9 @@ struct MenuView: View {
             .sheet(isPresented: $showsInfo) {
                 InfoView()
             }
+            .onAppear {
+                MotionSurveyRepository().printFiles()
+            }
         }
     }
 }

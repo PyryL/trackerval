@@ -34,11 +34,11 @@ class MotionSurveyManager {
             return
         }
 
-        // TODO: save to file
-
-        let fileContent = try! JSONEncoder().encode(recording)
-        print("motion file", fileContent.count, recording.frames.count)
-        print(String(data: fileContent, encoding: .utf8)?.prefix(100) as Any)
+        do {
+            try MotionSurveyRepository().save(recording)
+        } catch {
+            print("failed to save motion survey recording", error)
+        }
 
         self.recording = nil
     }
@@ -72,6 +72,39 @@ class MotionSurveyManager {
             motionData.rotationRate.y,
             motionData.rotationRate.z,
         ])
+    }
+}
+
+class MotionSurveyRepository {
+    init() {
+        directory = URL.applicationSupportDirectory.appending(component: "motion-survey", directoryHint: .isDirectory)
+    }
+
+    private let directory: URL
+
+    fileprivate func save(_ recording: MotionSurveyRecording) throws {
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+
+        let dateString = Date(timeIntervalSince1970: recording.firstFrameDate).ISO8601Format()
+        let fileURL = directory.appendingPathComponent("recording-\(dateString).json")
+
+        try JSONEncoder().encode(recording).write(to: fileURL)
+    }
+
+    func printFiles() {
+        if !FileManager.default.fileExists(atPath: directory.path(percentEncoded: false)) {
+            print("No motion survey recordings")
+        }
+
+        guard let files = try? FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: [.totalFileSizeKey]) else {
+            return
+        }
+
+        print("Storing \(files.count) motion survey recordings")
+        for fileUrl in files {
+            let resourceValues = try? fileUrl.resourceValues(forKeys: [.totalFileSizeKey])
+            print(fileUrl, resourceValues?.totalFileSize as Any)
+        }
     }
 }
 
