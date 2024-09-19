@@ -22,6 +22,10 @@ class MotionSurveyManager {
         MotionStartManager.manager.startDeviceMotionUpdates(to: OperationQueue(), withHandler: receivedMotionData)
     }
 
+    func markIntervalStart(date: Date) {
+        recording?.intervalStart = date.timeIntervalSince1970
+    }
+
     func stopRecording() {
         isRecording = false
         MotionStartManager.manager.stopDeviceMotionUpdates()
@@ -50,7 +54,10 @@ class MotionSurveyManager {
         }
 
         if recording == nil {
-            recording = MotionSurveyRecording(firstFrameDate: Date.now.timeIntervalSince1970, frames: [])
+            recording = MotionSurveyRecording(
+                firstFrameDate: Date.now.timeIntervalSince1970,
+                intervalStart: -1.0,
+                frames: [])
         }
 
         recording!.frames.append([
@@ -71,5 +78,6 @@ class MotionSurveyManager {
 fileprivate struct MotionSurveyRecording: Encodable {
     let version: Int = 1
     var firstFrameDate: Double
+    var intervalStart: Double
     var frames: [[Double]]
 }

@@ -130,6 +130,9 @@ class TrackingManager: ObservableObject {
                     }
 
                     self.intervalStatus = .ongoing
+
+                    self.motionSurveyManager.markIntervalStart(date: segmentEnd)
+
                     if let pacerInterval = self.pacerInterval {
                         self.pacerTimer?.invalidate()
                         self.pacerTimer = Timer.scheduledTimer(withTimeInterval: pacerInterval, repeats: true) { _ in
