@@ -118,13 +118,14 @@ class MotionSurveyRepository {
                 fileSize = resourceValues.totalFileSize
             }
 
-            return RepositoryFile(date: date, fileSize: fileSize)
+            return RepositoryFile(date: date, fileSize: fileSize, url: $0)
         }
     }
 
     struct RepositoryFile: Hashable {
         var date: Date?
         var fileSize: Int?
+        var url: URL
     }
 }
 

@@ -9,6 +9,7 @@ import SwiftUI
 import HealthKit
 
 struct ContentView: View {
+    let watchConnection = WatchConnectionManager()
     let healthManager = HealthManager()
     @State var workouts: [HKWorkout] = []
 
