@@ -91,20 +91,40 @@ class MotionSurveyRepository {
         try JSONEncoder().encode(recording).write(to: fileURL)
     }
 
-    func printFiles() {
-        if !FileManager.default.fileExists(atPath: directory.path(percentEncoded: false)) {
-            print("No motion survey recordings")
+    func listFiles() throws -> [RepositoryFile] {
+        guard FileManager.default.fileExists(atPath: directory.path(percentEncoded: false)) else {
+            return []
         }
 
-        guard let files = try? FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: [.totalFileSizeKey]) else {
-            return
-        }
+        let fileUrls = try FileManager.default.contentsOfDirectory(
+            at: directory,
+            includingPropertiesForKeys: [.totalFileSizeKey])
 
-        print("Storing \(files.count) motion survey recordings")
-        for fileUrl in files {
-            let resourceValues = try? fileUrl.resourceValues(forKeys: [.totalFileSizeKey])
-            print(fileUrl, resourceValues?.totalFileSize as Any)
+        return fileUrls.map {
+            let filename = $0.lastPathComponent
+
+            var date: Date? = nil
+            var fileSize: Int? = nil
+
+            if filename.hasPrefix("recording-"), filename.hasSuffix(".json") {
+                let dateString = filename
+                    .replacingOccurrences(of: "recording-", with: "")
+                    .replacingOccurrences(of: ".json", with: "")
+
+                date = ISO8601DateFormatter().date(from: dateString)
+            }
+
+            if let resourceValues = try? $0.resourceValues(forKeys: [.totalFileSizeKey]) {
+                fileSize = resourceValues.totalFileSize
+            }
+
+            return RepositoryFile(date: date, fileSize: fileSize)
         }
+    }
+
+    struct RepositoryFile: Hashable {
+        var date: Date?
+        var fileSize: Int?
     }
 }
 

@@ -31,9 +31,6 @@ struct MenuView: View {
             .sheet(isPresented: $showsInfo) {
                 InfoView()
             }
-            .onAppear {
-                MotionSurveyRepository().printFiles()
-            }
         }
     }
 }
@@ -63,10 +60,20 @@ fileprivate struct InfoView: View {
     }
 
     var body: some View {
-        Form {
-            Section(header: Text("About"), footer: Text(appVersionLabel)) {
-                Label("Pyry Lahtinen / WinterFog", systemImage: "person")
-                    .bold()
+        NavigationStack {
+            Form {
+                Section {
+                    NavigationLink {
+                        MotionSurveyListView()
+                    } label: {
+                        Label("Motion survey", systemImage: "folder")
+                    }
+                }
+
+                Section(header: Text("About"), footer: Text(appVersionLabel)) {
+                    Label("Pyry Lahtinen / WinterFog", systemImage: "person")
+                        .bold()
+                }
             }
         }
     }
