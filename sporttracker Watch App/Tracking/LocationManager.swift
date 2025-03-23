@@ -48,10 +48,7 @@ class LocationManager: NSObject {
         guard let authorizationCallback else {
             return
         }
-
-        defer {
-            self.authorizationCallback = nil
-        }
+        self.authorizationCallback = nil
 
         guard [.authorizedWhenInUse, .authorizedAlways].contains(manager.authorizationStatus) else {
             authorizationCallback(false, LocationError.notGranted)
