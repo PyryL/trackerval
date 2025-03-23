@@ -43,6 +43,8 @@ class TrackingManager: ObservableObject {
     let newSegmentAudio = AudioPlayer(sound: .newSegment)
     let pacerAudio = AudioPlayer(sound: .pacer)
 
+    let speechSynthesisManager = SpeechSynthesisManager()
+
     func startWorkout() {
         guard case .notStarted = status, startDate == nil else {
             return
@@ -134,6 +136,13 @@ class TrackingManager: ObservableObject {
                     self.intervalStatus = .disabled
                     self.pacerTimer?.invalidate()
                     self.pacerTimer = nil
+
+                    let intervalDuration = segmentEnd.timeIntervalSince(segmentStart)
+                    DispatchQueue.main.async {
+                        Timer.scheduledTimer(withTimeInterval: 2.0, repeats: false) { _ in
+                            self.speechSynthesisManager.speak(result: intervalDuration)
+                        }
+                    }
                 }
 
                 WKInterfaceDevice.current().play(.retry)
