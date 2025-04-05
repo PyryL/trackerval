@@ -139,8 +139,11 @@ class TrackingManager: ObservableObject {
 
                     let intervalDuration = segmentEnd.timeIntervalSince(segmentStart)
                     DispatchQueue.main.async {
-                        Timer.scheduledTimer(withTimeInterval: 2.0, repeats: false) { _ in
-                            self.speechSynthesisManager.speak(result: intervalDuration)
+                        Timer.scheduledTimer(withTimeInterval: 10.0, repeats: false) { _ in
+                            WKInterfaceDevice.current().play(.click)
+                            Timer.scheduledTimer(withTimeInterval: 0.5, repeats: false) { _ in
+                                self.speechSynthesisManager.speak(result: intervalDuration)
+                            }
                         }
                     }
                 }
