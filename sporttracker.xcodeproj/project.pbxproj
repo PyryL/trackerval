@@ -51,6 +51,7 @@
 		447993682C4C007F001033A7 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				Tracking/SpeechSynthesisManager.swift,
 				Utilities/Formatters.swift,
 			);
 			target = 4479935D2C4C0028001033A7 /* sporttrackerTests */;

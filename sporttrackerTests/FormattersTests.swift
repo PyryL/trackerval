@@ -34,6 +34,8 @@ struct FormattersTests {
         #expect(Formatters.duration(0.5010) == "0.6")
         #expect(Formatters.duration(0.5989) == "0.6")
 
+        #expect(Formatters.duration(4.580172) == "4.6")
+
         #expect(Formatters.duration(10.7192) == "10.8")
         #expect(Formatters.duration(58.1021) == "58.2")
 
@@ -59,6 +61,36 @@ struct FormattersTests {
         #expect(Formatters.duration(52968.001812) == "14:42:48.1")
         #expect(Formatters.duration(-1.3101) == "")
         #expect(Formatters.duration(.nan) == "")
+    }
+
+    @Test func testSpeechDurationFormatting() {
+        #expect(SpeechSynthesisManager.format(result: 0.0) == "0 0")
+        #expect(SpeechSynthesisManager.format(result: 0.5010) == "0 6")
+
+        #expect(SpeechSynthesisManager.format(result: 4.580172) == "4 6")
+        #expect(SpeechSynthesisManager.format(result: 10.7192) == "10 8")
+        #expect(SpeechSynthesisManager.format(result: 14.921) == "15 0")
+        #expect(SpeechSynthesisManager.format(result: 58.1021) == "58 2")
+
+        #expect(SpeechSynthesisManager.format(result: 59.81) == "59 9")
+        #expect(SpeechSynthesisManager.format(result: 59.9001) == "1 00 0")
+        #expect(SpeechSynthesisManager.format(result: 60.0001) == "1 00 1")
+        #expect(SpeechSynthesisManager.format(result: 61.50238) == "1 oh-1 6")
+
+        #expect(SpeechSynthesisManager.format(result: 74.9018) == "1 15 0")
+        #expect(SpeechSynthesisManager.format(result: 120.0711) == "2 00 1")
+        #expect(SpeechSynthesisManager.format(result: 129.6743) == "2 oh-9 7")
+        #expect(SpeechSynthesisManager.format(result: 682.3082) == "11 22 4")
+
+        #expect(SpeechSynthesisManager.format(result: 3600.0) == "1 00 00 0")
+        #expect(SpeechSynthesisManager.format(result: 3602.1291) == "1 00 oh-2 2")
+        #expect(SpeechSynthesisManager.format(result: 3647.5985) == "1 00 47 6")
+        #expect(SpeechSynthesisManager.format(result: 3687.2984) == "1 oh-1 27 3")
+
+        #expect(SpeechSynthesisManager.format(result: 9556.8429) == "2 39 16 9")
+        #expect(SpeechSynthesisManager.format(result: 52968.001812) == "14 42 48 1")
+        #expect(SpeechSynthesisManager.format(result: -1.3101) == "")
+        #expect(SpeechSynthesisManager.format(result: .nan) == "")
     }
 
     @Test func testSpeedFormatting() {
